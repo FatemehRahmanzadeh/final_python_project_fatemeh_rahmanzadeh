@@ -1,12 +1,11 @@
 from hashlib import md5
 import json
-
 import work
 from os import path
 
 
 class User:
-    def __init__(self, user_email, name, last_name, username, password, works=None):
+    def __init__(self, user_email, name, last_name, username, password,works = {}):
         """
 
         :param user_email: an unique email address for each user
@@ -21,8 +20,8 @@ class User:
         self.username = username
         self.__password = password
         self.fullname = name + last_name
-        self.works = works
-        self.aceept = False
+        self.works = work
+        self.accept = False
 
     def new_work(self):
         """
@@ -30,6 +29,7 @@ class User:
         :return: instance of Work
         """
         new_work = work.Work.create_work(self.username)
+        self.works[new_work.work_name] = new_work
         return f'{new_work.work_name} added to your work list successfully.'
 
     def share_work(self, wrk=None, target_user=None):
@@ -107,7 +107,7 @@ class User:
             if username in data.keys():
                 if hash_password == data[username]['password']:
                     current_user = User(*(data[username].values()))
-                    print(f'welcome {current_user.name}')
+                    print(f'welcome {current_user.name}. your registration was successful.')
                     return current_user
                 else:
                     raise ValueError
@@ -115,62 +115,6 @@ class User:
                 raise ValueError
         except ValueError:
             return False
-
-
-def user_menu(user):
-    """
-    this function runs when user log in successfully. methods
-     of User class recall based on act variable as input.
-    :param user: an instance from User class
-    :return: output parameters of recalled method.
-    """
-
-    print(f'hello {user.name}')
-    act = 0
-    while act != 6:
-
-        print('you are in main menu. what can I do for you?')
-        print('\n 1. add a new work'
-              '\n 2. show works list'
-              '\n 3. go to work directory'
-              '\n 4. share a work with a friend'
-              '\n 5. accept or reject a work'
-              '\n 6. log out')
-        try:
-            act = int(input('please choose a task from menu above:'))
-            if act < 0 or act > 6:
-                raise ValueError
-        except ValueError:
-            print('invalid input. Just 1-5 are allowed')
-        if act == 1:
-            print(user.new_work())
-        elif act == 2:
-            print(user.works)
-        elif act == 3:
-            if not user.works:
-                print('no work defined yet')
-            else:
-                works_names = list(user.works.keys())
-                for i, key in enumerate(works_names):
-                    print(i+1, '. ', key)
-
-                try:
-                    select_work = int(input('enter the work number:'))
-                    if 1 <= select_work <= len(works_names):
-                        selected_work_name = works_names[select_work-1]          # execute work name from works of user
-                        selected = work.Work(*(user.works[selected_work_name]))  # make work object to recall methods
-                        work.work_menu(selected)
-                    else:
-                        raise ValueError
-                except ValueError:
-                    print(f'please enter a 1 <= number <= {len(user.works)}')
-
-        elif act == 4:
-            print(user.share_work())
-        elif act == 5:
-            print(user.accept_a_work())
-        else:
-            break
 
 
 if __name__ == '__main__':

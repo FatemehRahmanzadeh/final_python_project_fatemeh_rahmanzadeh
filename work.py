@@ -4,9 +4,9 @@ import json
 class Work:
     def __init__(self, work_name, date, time, importance, location=None, link=None, description=None):
         """
-        this class model the works that user adds to directory.all the lines in instance methods
+        this class models the works that user adds to directory.all the lines in instance methods
         are sample and invalid. some attributes and method maybe add or remove in next phase of project.
-        :param work_name: index of work in works list
+        :param work_name: name of work in works list
         :param date: date of reminding work
         :param time: time of reminding work
         :param importance: level of urgent or importance of work. user can set it by numbers 1-4
@@ -102,44 +102,6 @@ class Work:
             json.dump(user_data, all_data_file)
 
         return cls(*list_of_attributes)
-
-
-def work_menu(work):
-    """
-    this function runs if user selects a work. methods
-     of work class recall based on action variable as input.
-    :param work: chosen work instance by user
-    :return: output parameters of recalled method (for now just a string that describes methods).
-    """
-    print(f'this is {work.work_name} option menu:')
-
-    print(f'\n1. edit {work.work_name}'
-          f'\n2. postpone {work.work_name} to another time'
-          f'\n3. change status of {work.work_name}. (in progress or done)'
-          f'\n4. categorize {work.work_name}'
-          f'\n5. back to the main menu')
-
-    action = 0
-    while action != 5:
-        while ValueError:
-            try:
-                action = int(input('please select an option from list above:'))
-                if action < 0 or action > 5:
-                    raise ValueError
-                else:
-                    break
-            except ValueError:
-                print('invalid input. Just 1-5 are allowed...')
-        if action == 1:
-            print(work.edit_work())
-        elif action == 2:
-            print(work.postpone())
-        elif action == 3:
-            print(work.change_status())
-        elif action == 4:
-            print(work.categorize())
-        else:
-            break
 
 
 if __name__ == '__main__':
