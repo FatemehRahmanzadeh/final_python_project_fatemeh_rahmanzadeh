@@ -5,7 +5,7 @@ from os import path
 
 
 class User:
-    def __init__(self, user_email, name, last_name, username, password,works = {}):
+    def __init__(self, user_email, name, last_name, username, password,works={}):
         """
 
         :param user_email: an unique email address for each user
@@ -20,7 +20,7 @@ class User:
         self.username = username
         self.__password = password
         self.fullname = name + last_name
-        self.works = work
+        self.works = works
         self.accept = False
 
     def new_work(self):
@@ -41,11 +41,17 @@ class User:
         """
         return f'work_name has been sent to target_user'
 
-    def accept_a_work(self):
+    def accept_a_work(self,accept, receved_work):
         """
         this method accepts a work from a user and adds it to user's work list
         :return: a massage if accepted or rejected based on accept attribute
         """
+        if accept:
+            self.accept = True
+            self.works[receved_work.work_name] = receved_work
+            with open('users_data.json', 'r+') as add_new_work:
+                all_works = json.load(add_new_work)[self.username]['works']
+            all_works[receved_work.work_name] = receved_work
         return 'work_name from sender username accepted or rejected '
 
     def __str__(self):

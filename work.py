@@ -1,6 +1,4 @@
 import json
-
-
 class Work:
     def __init__(self, work_name, date, time, importance, location=None, link=None, description=None):
         """
@@ -14,6 +12,7 @@ class Work:
         :param link:
         :param description: some description about work
         """
+
         self.work_name = work_name
         self.date = date
         self.time = time
@@ -44,12 +43,31 @@ class Work:
         """
         return self.reminder_massage
 
-    def edit_work(self):
+    def edit_work(self, username, new_values, attributes):
         """
         user can edit attributes of work using this method
         :return: a massage if editing is successful or not
         """
-        return f'{self.work_name} edit was successful'
+        out_str = f'following items changed for {self.work_name}:'
+        with open('users_data.json', 'r') as data:
+            all_data = json.load(data)
+            work_dict = all_data[username]['works']
+            current_work = work_dict[self.work_name]
+
+        for attr, new_val in zip(attributes, new_values):
+            if 'work_name' in attributes:
+                idx = attributes.index('work_name')
+                work_dict[new_values[idx]] = current_work
+                current_work = work_dict[new_values[idx]]
+                work_dict.pop(self.work_name)
+
+            self.__dict__[attr] = new_val
+            current_work[attr] = new_val
+            out_str += f'\n{attr} >>> {new_val}'
+
+        with open('users_data.json', 'w') as data:
+            json.dump(all_data, data, ensure_ascii=False)
+        return out_str
 
     def postpone(self, postpone_time=None):
         """
@@ -59,11 +77,12 @@ class Work:
         """
         return 'you can edit time of your work'
 
-    def change_status(self):
+    def change_status(self, status):
         """
         change status of work. done or in progress
         :return: a massage if changes are done and saved.
         """
+        self.status = status
         return f'status of {self.work_name} changed to {self.status}'
 
     def __str__(self):
@@ -102,9 +121,3 @@ class Work:
             json.dump(user_data, all_data_file)
 
         return cls(*list_of_attributes)
-
-
-if __name__ == '__main__':
-    Work.create_work('ftm')
-    wrk = Work('test', '00/3/23', '12:32', 1, '-', '-', '-')
-    work_menu(wrk)

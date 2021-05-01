@@ -86,8 +86,9 @@ def user_menu(usr):
                     select_work = int(input('enter the work number:'))
                     if 1 <= select_work <= len(works_names):
                         selected_work_name = works_names[select_work - 1]  # execute work name from works of user
-                        selected = work.Work(*(works_from_file[selected_work_name]))  # make work object
-                        work_menu(selected)
+                        instance_info = dict(works_from_file[selected_work_name])
+                        selected = work.Work(*(list(instance_info.values())))  # make work object
+                        work_menu(usr.username, selected)
                     else:
                         raise ValueError
                 except ValueError:
@@ -101,14 +102,15 @@ def user_menu(usr):
             break
 
 
-def work_menu(wrk):
+def work_menu(username, wrk):
     """
     this function runs if user selects a work. methods
      of work class recall based on action variable as input.
+     :param username: user logged in to reminder
     :param wrk: chosen work instance by user
     :return: output parameters of recalled method (for now just a string that describes methods).
     """
-    print(f'this is {wrk.work_name} option menu:')
+    print(f'{username} > {wrk.work_name} option menu:')
 
     print(f'\n1. edit {wrk.work_name}'
           f'\n2. postpone {wrk.work_name} to another time'
@@ -128,7 +130,7 @@ def work_menu(wrk):
             except ValueError:
                 print('invalid input. Just 1-5 are allowed...')
         if action == 1:
-            print(wrk.edit_work())
+            edit_work_menu(username, wrk)
         elif action == 2:
             print(wrk.postpone())
         elif action == 3:
@@ -139,6 +141,33 @@ def work_menu(wrk):
             break
 
 
-if __name__ == '__main__':
-    login()
-    print(creat_account())
+def edit_work_menu(username, wrk):
+    """
+    this menu let users edit attributes of their works
+    :param username: user logged in to reminder
+    :param wrk: selected work object to edit
+    :return: an edited work object
+    """
+    attributes_dict = {}
+    print(f'{username} > {wrk.work_name} > edit {wrk.work_name}')
+    attribute_lst = list(wrk.__dict__.keys())
+
+    for i in range(1, len(attribute_lst) + 1):
+        attributes_dict[i] = attribute_lst[i-1]
+        print(f'{i}. {attribute_lst[i-1]} of {wrk.work_name}')
+
+    new_values = []
+    items = list(map(lambda x: int(x), input('id of items fo editing:(split items with comma)').split(',')))
+    edit_items = [attributes_dict[num] for num in items]
+
+    for i, itm in enumerate(edit_items):
+        new_val = input(f'new values of {itm}')
+        if new_val.isdigit():
+            new_val = int(new_val)
+            new_values.append(new_val)
+        else:
+            new_values.append(new_val)
+    print(wrk.edit_work(username, new_values, edit_items))
+    return wrk
+
+# if __name__ == '__main__':
