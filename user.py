@@ -2,10 +2,11 @@ from hashlib import md5
 import json
 import work
 from os import path
+import pprint
 
 
 class User:
-    def __init__(self, user_email, name, last_name, username, password,works={}):
+    def __init__(self, user_email, name, last_name, username, password):
         """
 
         :param user_email: an unique email address for each user
@@ -20,7 +21,8 @@ class User:
         self.username = username
         self.__password = password
         self.fullname = name + last_name
-        self.works = works
+        self.works = []
+        self.categories = {}
         self.accept = False
 
     def new_work(self):
@@ -29,30 +31,76 @@ class User:
         :return: instance of Work
         """
         new_work = work.Work.create_work(self.username)
-        self.works[new_work.work_name] = new_work
+        self.works.append(new_work)
         return f'{new_work.work_name} added to your work list successfully.'
 
-    def share_work(self, wrk=None, target_user=None):
+    def categorize_works(self):
+        """
+        this method takes works from self.works attribute and categorise them
+         based on self.category attribute of work
+        :return: a massage about categorise succeed or failed
+        """
+        for task in self.works:
+            if task.category not in self.categories.keys():
+                self.categories[task.category] = [task]
+            else:
+                self.categories[task.category].append(task)
+
+        return self.categories
+
+    def delete_work(self, work_name):
+        """
+        this method remove a work from work list of user and from akk_users_works.jason
+        :param work_name: name of work which user is going to delete
+        :return: a massage about successful delete of fail.
+        """
+
+        for w in self.works:
+            if w.work_name == work_name:
+                self.works.remove(w)
+                with open('all_users_works.json', 'r') as all_works:
+                    work_dict = json.load(all_works)
+                    user_works = work_dict[self.username]
+                    user_works.pop(w.work_name)
+
+                with open('all_users_works.json', 'w') as all_works:
+                    json.dump(work_dict, all_works, ensure_ascii=False)
+                return self.works
+
+    def share_work(self, work_name):
         """
         this method is for send a work
-        :param wrk: work that is going to be sent or receive
-        :param target_user: user who is going to receive the work
-        :return: a massage for sending or receiving or an error
+        :param work_name: work that is going to be sent or receive
+        :return: a work and a True flag for sending or an error if work does not exist in user work list
         """
-        return f'work_name has been sent to target_user'
+        work_names = [w.work_name for w in self.works]
+        if work_name in work_names:
+            for w in self.works:
+                if w.work_name == work_name:
+                    return w
 
-    def accept_a_work(self,accept, receved_work):
+    def accept_a_work(self, accept, received_work):
         """
         this method accepts a work from a user and adds it to user's work list
         :return: a massage if accepted or rejected based on accept attribute
         """
-        if accept:
-            self.accept = True
-            self.works[receved_work.work_name] = receved_work
-            with open('users_data.json', 'r+') as add_new_work:
-                all_works = json.load(add_new_work)[self.username]['works']
-            all_works[receved_work.work_name] = receved_work
+        # if accept:
+        #     self.accept = True
+        #     self.works[received_work.work_name] = received_work
+        #     with open('users_data.json', 'r+') as add_new_work:
+        #         all_works = json.load(add_new_work)[self.username]['works']
+        #     all_works[received_work.work_name] = received_work
+
         return 'work_name from sender username accepted or rejected '
+
+    def show_works(self):
+        """
+        this method prints json file of works pretty
+        :return:
+        """
+        with open('all_users_works.json', 'r') as user_works:
+            works = json.load(user_works)[self.username]
+            pprint.pprint(works)
 
     def __str__(self):
         return f'name: {self.name}\n last name: {self.last_name}\nusername: {self.username}\n' \
@@ -102,27 +150,29 @@ class User:
         :param password: unchecked password
         :return: True if username and password are match, or False otherwise
         """
-        try:
-            with open('users_data.json', 'r') as user_data:
-                data = json.load(user_data)
-                password = str(password).encode()
-                hash_password = md5(password).hexdigest()
-        except IOError:
-            print('Error opening or loading file...')
-        try:
+
+        with open('users_data.json', 'r') as user_data, open('all_users_works.json', 'r') as wrks:
+            data = json.load(user_data)
+            works = json.load(wrks)
+
+            user_has_work = True if username in works.keys() else False
+            my_works = works[username] if user_has_work else {}
+
+            password = str(password).encode()
+            hash_password = md5(password).hexdigest()
+
             if username in data.keys():
                 if hash_password == data[username]['password']:
                     current_user = User(*(data[username].values()))
-                    print(f'welcome {current_user.name}. your registration was successful.')
+                    if user_has_work:
+                        for _ in my_works.values():
+                            wrk_obj = work.Work(*(_.values()))
+                            current_user.works.append(wrk_obj)
+                    print(f'welcome {current_user.name}. your log in was successful.')
                     return current_user
                 else:
-                    raise ValueError
+                    print('password is wrong...')
+                    return False
             else:
-                raise ValueError
-        except ValueError:
-            return False
-
-
-if __name__ == '__main__':
-    test = User.register(['sareh@email.com', 'sareh', 'rahmanzadeh', 'srh', 'pass3'])
-    login_tst = User.login('ftm', 'pass1')
+                print(f'No user named {username}...')
+                return False

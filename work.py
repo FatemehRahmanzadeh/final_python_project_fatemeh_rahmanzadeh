@@ -1,80 +1,72 @@
 import json
 class Work:
-    def __init__(self, work_name, date, time, importance, location=None, link=None, description=None):
+    def __init__(self, work_name, date, time, category, importance=True, urgency=True, location=None,
+                 link=None, description=None):
         """
         this class models the works that user adds to directory.all the lines in instance methods
         are sample and invalid. some attributes and method maybe add or remove in next phase of project.
         :param work_name: name of work in works list
         :param date: date of reminding work
         :param time: time of reminding work
-        :param importance: level of urgent or importance of work. user can set it by numbers 1-4
-        :param location:
-        :param link:
+        :param importance:work is important. True or False
+        :param urgency: work is urgent. True or False
+        :param location: place that work is going to be done.
+        :param link: if work has a link
         :param description: some description about work
         """
 
         self.work_name = work_name
         self.date = date
         self.time = time
+        self.category = category
         self.importance = importance
+        self.urgency = urgency
         self.location = location
         self.link = link
         self.description = description
         self.reminder_massage = f'time to do {self.work_name}'
         self.status = 'in progress'
 
-    def categorize(self, importance=None):
-        """
-        assign a number to each work based on its priority and will save it in Corresponding csv or json file
-        :param importance: sets the urgent_importance level for work (1-4)
-        :return: category of work
-        """
-        importance_urgent = {1: 'important_urgent',
-                             2: 'important_not_urgent',
-                             3: 'not_important_urgent',
-                             4: 'not_important_not_urgent'}
-
-        return 'there are four categories for work based on Eisenhower matrix'
-
     def notification(self):
         """
         this method shows a notification based on importance attribute of work
             :return: a notification
         """
-        return self.reminder_massage
 
     def edit_work(self, username, new_values, attributes):
         """
         user can edit attributes of work using this method
         :return: a massage if editing is successful or not
         """
-        out_str = f'following items changed for {self.work_name}:'
-        with open('users_data.json', 'r') as data:
-            all_data = json.load(data)
-            work_dict = all_data[username]['works']
-            current_work = work_dict[self.work_name]
+        out_str = ''
+        with open('all_users_works.json', 'r') as data:
+            work_dict = json.load(data)
+            current_work = work_dict[username][self.work_name]
 
-        for attr, new_val in zip(attributes, new_values):
             if 'work_name' in attributes:
                 idx = attributes.index('work_name')
-                work_dict[new_values[idx]] = current_work
-                current_work = work_dict[new_values[idx]]
-                work_dict.pop(self.work_name)
+                work_dict[username][new_values[idx]] = current_work
+                current_work = work_dict[username][new_values[idx]]
+                work_dict[username].pop(self.work_name)
 
+        old_values = {_: self.__dict__[_] for _ in attributes}
+
+        for attr, new_val in zip(attributes, new_values):
             self.__dict__[attr] = new_val
             current_work[attr] = new_val
-            out_str += f'\n{attr} >>> {new_val}'
+            out_str += f'\n{attr}: {old_values[attr]} > changed to > {new_val}'
 
-        with open('users_data.json', 'w') as data:
-            json.dump(all_data, data, ensure_ascii=False)
+        with open('all_users_works.json', 'w') as data:
+            json.dump(work_dict, data, ensure_ascii=False)
         return out_str
 
-    def postpone(self, postpone_time=None):
+    def postpone(self, postpone_time):
         """
         this method changes the time of work.
         :param postpone_time:
         :return:
         """
+
         return 'you can edit time of your work'
 
     def change_status(self, status):
@@ -97,27 +89,38 @@ class Work:
         :return: an instance of Work class
         """
 
-        print('please enter work attributes same as sample. location,link and description are optional')
-        list_of_attributes = input('work_name,date,time,importance,location,link,description:').split(',')
+        work_name = input('title of work:')
+        date = input('enter date of work(Y/M/D):')
+        time = input('enter time of work (h:min):')
+        importance = input('is tis work important? 1. Yes  2. No  ')
+        importance = True if importance == '1' else False
+        urgency = input('is your work urgent? 1. Yes  2. No  ')
+        urgency = True if urgency == '1' else False
+        category = input('choose a category for your work: ')
+        location = input('location of work (optional): ')
+        link = input('add a link related to your work (optional): ')
+        description = input('enter a description for your work (optional): ')
 
         work_dict = {
-            'work_name': list_of_attributes[0],
-            'date': list_of_attributes[1],
-            'time': list_of_attributes[2],
-            'importance': list_of_attributes[3],
-            'location': list_of_attributes[4],
-            'link': list_of_attributes[5],
-            'description': list_of_attributes[6],
+            'work_name': work_name,
+            'date': date,
+            'time': time,
+            'importance': importance,
+            'urgency': urgency,
+            'category': category,
+            'location': location,
+            'link': link,
+            'description': description,
         }
-        works = {work_dict['work_name']: work_dict}
-        with open('users_data.json', 'r') as all_data_file:
-            user_data = json.load(all_data_file)
-            if 'works' not in user_data[username].keys():
-                user_data[username]['works'] = works
+
+        with open('all_users_works.json', 'r') as all_users_work:
+            user_work = json.load(all_users_work)
+            if username not in user_work.keys():
+                user_work.update({username: {work_name: work_dict}})
             else:
-                user_data[username]['works'].update(works)
+                user_work[username].update({work_name: work_dict})
 
-        with open('users_data.json', 'w') as all_data_file:
-            json.dump(user_data, all_data_file)
+        with open('all_users_works.json', 'w') as all_users_work:
+            json.dump(user_work, all_users_work)
 
-        return cls(*list_of_attributes)
+        return cls(*list(work_dict.values()))

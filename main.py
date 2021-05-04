@@ -3,7 +3,7 @@ import menu_manager
 while True:
     print('>'*20, 'welcome to reminder', '<'*20)
 
-    action = input('you should have ac account to enter:'
+    action = input('you should have an account to enter:'
                    '\n  1. I have an account.    2. I am new to reminder   3. exit reminder \n\n'
                    'enter a number from menu above -->>>:')
     try:

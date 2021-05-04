@@ -1,7 +1,4 @@
 import user
-import work
-import json
-
 
 def login():
     tries = 0
@@ -21,8 +18,13 @@ def login():
 
 
 def creat_account():
+    user_data = []
     try:
-        user_data = input('enter requirement like: email, name, last_name, username, password').split(',')
+        user_data.append(input('email: '))
+        user_data.append(input('your name: '))
+        user_data.append(input('your last name: '))
+        user_data.append(input('define an username: '))
+        user_data.append(input('enter a secure password: '))
         confirm_password = input('please enter your password again:')
         assert confirm_password == user_data[4]
         new_user = user.User.register(user_data)
@@ -61,34 +63,30 @@ def user_menu(usr):
               '\n 3. go to work directory'
               '\n 4. share a work with a friend'
               '\n 5. accept or reject a work'
-              '\n 6. log out')
+              '\n 6. categorize your works'
+              '\n 7. log out')
         try:
             act = int(input('please choose a task from menu above:'))
-            if act < 0 or act > 6:
+            if act < 0 or act > 7:
                 raise ValueError
         except ValueError:
-            print('invalid input. Just 1-5 are allowed')
+            print('invalid input. Just 1-7 are allowed')
         if act == 1:
             print(usr.new_work())
         elif act == 2:
-            print(usr.works)
+            usr.show_works()
         elif act == 3:
             if not usr.works:
                 print('no work defined yet')
             else:
-                with open('users_data.json', 'r') as works_data:
-                    works_from_file = json.load(works_data)[usr.username]['works']
-                works_names = list(works_from_file.keys())
-                for i, key in enumerate(works_names):
-                    print(i + 1, '. ', key)
+                for i, obj in enumerate(usr.works):
+                    print(i+1, ".", obj.work_name)
 
                 try:
                     select_work = int(input('enter the work number:'))
-                    if 1 <= select_work <= len(works_names):
-                        selected_work_name = works_names[select_work - 1]  # execute work name from works of user
-                        instance_info = dict(works_from_file[selected_work_name])
-                        selected = work.Work(*(list(instance_info.values())))  # make work object
-                        work_menu(usr.username, selected)
+                    if 1 <= select_work <= len(usr.works):
+                        selected = usr.works[select_work - 1]
+                        work_menu(usr, selected)
                     else:
                         raise ValueError
                 except ValueError:
@@ -98,28 +96,39 @@ def user_menu(usr):
             print(usr.share_work())
         elif act == 5:
             print(usr.accept_a_work())
+        elif act == 6:
+            work_categories_menu(usr)
         else:
             break
 
 
-def work_menu(username, wrk):
+def work_menu(logged_in_user, wrk):
     """
     this function runs if user selects a work. methods
      of work class recall based on action variable as input.
-     :param username: user logged in to reminder
+     :param logged_in_user: user who logged in to reminder
     :param wrk: chosen work instance by user
     :return: output parameters of recalled method (for now just a string that describes methods).
     """
-    print(f'{username} > {wrk.work_name} option menu:')
+    print(f'{logged_in_user.username} > {wrk.work_name} option menu:')
 
     print(f'\n1. edit {wrk.work_name}'
           f'\n2. postpone {wrk.work_name} to another time'
           f'\n3. change status of {wrk.work_name}. (in progress or done)'
-          f'\n4. categorize {wrk.work_name}'
+          f'\n4. delete {wrk.work_name}'
           f'\n5. back to the main menu')
 
     action = 0
     while action != 5:
+
+        print(f'{logged_in_user.username} > {wrk.work_name} option menu:')
+
+        print(f'\n1. edit {wrk.work_name}'
+              f'\n2. postpone {wrk.work_name} to another time'
+              f'\n3. change status of {wrk.work_name}. (in progress or done)'
+              f'\n4. delete {wrk.work_name}'
+              f'\n5. back to previous page')
+
         while ValueError:
             try:
                 action = int(input('please select an option from list above:'))
@@ -128,15 +137,17 @@ def work_menu(username, wrk):
                 else:
                     break
             except ValueError:
-                print('invalid input. Just 1-5 are allowed...')
+                print('invalid input. Just 1-4 are allowed...')
         if action == 1:
-            edit_work_menu(username, wrk)
+            edit_work_menu(logged_in_user.username, wrk)
         elif action == 2:
             print(wrk.postpone())
         elif action == 3:
             print(wrk.change_status())
         elif action == 4:
-            print(wrk.categorize())
+            print(logged_in_user.delete_work(wrk.work_name))
+            logged_in_user.categorize_works()
+            break
         else:
             break
 
@@ -169,5 +180,33 @@ def edit_work_menu(username, wrk):
             new_values.append(new_val)
     print(wrk.edit_work(username, new_values, edit_items))
     return wrk
+
+
+def work_categories_menu(logged_in_user):
+    """
+    this menu shows works of user in organized categories
+    :param logged_in_user: current user who logged in
+    :return: a massage of successful categorising or an error if something goes wrong
+    """
+    all_categories = logged_in_user.categorize_works()
+    number_of_cats = len(all_categories)
+    cat_select_dict = {}
+    while True:
+        print('\n', '-.'*30, 'list of categories:', '-.'*30)
+        for _, cat in enumerate(all_categories.keys()):
+            print(_+1, '.', cat)
+            cat_select_dict[_+1] = cat
+
+        select_cat = int(input('enter a category number from list above: '))
+        selected_cat = cat_select_dict[select_cat]
+
+        work_dict = {}
+        print('\n', '×' * 30, f'list of works in {selected_cat}:', '×' * 30)
+        for i, w in enumerate(all_categories[selected_cat]):
+            print(i+1, '.', w.work_name)
+            work_dict[i+1] = w
+
+        select_work = int(input('choose a work to enter work menu: '))
+        work_menu(logged_in_user, work_dict[select_work])
 
 # if __name__ == '__main__':
