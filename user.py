@@ -24,6 +24,7 @@ class User:
         self.works = []
         self.categories = {}
         self.accept = False
+        self.events = {}
 
     def new_work(self):
         """
@@ -78,6 +79,8 @@ class User:
             for w in self.works:
                 if w.work_name == work_name:
                     return w
+        else:
+            return f'no such file exist in {self.name} work list'
 
     def accept_a_work(self, accept, received_work):
         """
@@ -100,6 +103,7 @@ class User:
         """
         with open('all_users_works.json', 'r') as user_works:
             works = json.load(user_works)[self.username]
+            print('*'*30, f'list of {self.username} works: ', '*'*30)
             pprint.pprint(works)
 
     def __str__(self):
