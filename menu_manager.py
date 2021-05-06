@@ -81,7 +81,7 @@ def user_menu(usr):
         if act == 1:
             print(usr.new_work())
         elif act == 2:
-            usr.show_works(usr.username)
+            usr.show_works()
         elif act == 3:
             if not usr.works:
                 print('no work defined yet')

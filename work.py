@@ -157,7 +157,10 @@ class Work:
 
         work_dict = {
             'work_name': work_name,
-            'date and time': work_datetime,
+            'date and time': f"{work_datetime.month}-"
+                             f"{work_datetime.day}-"
+                             f"{work_datetime.year} "
+                             f"{work_datetime.time()}",
             'importance': importance,
             'urgency': urgency,
             'category': category,
