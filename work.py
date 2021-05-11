@@ -2,6 +2,8 @@ import json
 from _datetime import datetime
 from time import sleep
 
+import file_manager
+
 
 class Work:
     def __init__(self, work_name, work_datetime, category, importance=True, urgency=True, location=None,
@@ -130,15 +132,6 @@ class Work:
             'link': link,
             'description': description,
         }
-
-        with open('all_users_works.json', 'r') as all_users_work:
-            user_work = json.load(all_users_work)
-            if username not in user_work.keys():
-                user_work.update({username: {work_name: work_dict}})
-            else:
-                user_work[username].update({work_name: work_dict})
-
-        with open('all_users_works.json', 'w') as all_users_work:
-            json.dump(user_work, all_users_work)
+        file_manager.write_to_file('all_users_works.json', work_dict, username, work_dict['work_name'])
 
         return cls(*list(work_dict.values()))

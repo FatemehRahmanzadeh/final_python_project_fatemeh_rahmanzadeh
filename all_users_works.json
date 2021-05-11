@@ -1,57 +1,89 @@
 {
     "sra": {
-        "study": {
-            "work_name": "study",
-            "date and time": "2021-04-23 12:00:00",
-            "category": "education",
-            "importance": true,
-            "urgency": true,
-            "location": "",
-            "link": "",
-            "description": "",
-            "work_datetime": "2021-04-12 13:00:00"
-        }
-    },
-    "rza": {
-        "study": {
-            "work_name": "study",
-            "work_datetime": "2021-4-23 12:00:00",
-            "category": "education",
-            "importance": true,
-            "urgency": true,
-            "location": "",
-            "link": "",
-            "description": "",
-            "status": "2021-04-12 13:00:00",
-            "notification": null
-        }
-    },
-    "ftm": {
-        "math exam": {
-            "work_name": "math exam",
-            "work_datetime": "2021-09-19 10:00:00",
-            "category": "exams and tests",
+        "reading": {
+            "work_name": "reading",
+            "work_datetime": "2021-04-23 12:00:00",
+            "category": "learning",
             "importance": false,
-            "urgency": false,
-            "location": "class",
-            "link": "test.ir",
-            "description": "study hard",
-            "status": "done",
-            "notification": "time to go to exam"
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": "",
+            "status": null
+        },
+        "rza": {
+            "study": {
+                "work_name": "study",
+                "work_datetime": "2021-4-23 12:00:00",
+                "category": "education",
+                "importance": true,
+                "urgency": true,
+                "location": "",
+                "link": "",
+                "description": "",
+                "status": "in progress",
+                "notification": null
+            }
+        },
+        "ftm": {
+            "math exam": {
+                "work_name": "math exam",
+                "work_datetime": "2021-10-30 09:00:00",
+                "category": "exams & tests",
+                "importance": false,
+                "urgency": false,
+                "location": "class",
+                "link": "wwww.std.test",
+                "description": "study hard this time",
+                "status": "done",
+                "notification": "math exam time"
+            },
+            "zhr": {
+                "work out": {
+                    "work_name": "work out",
+                    "work_datetime": "2021-05-19 12:00:00",
+                    "category": "sport",
+                    "importance": true,
+                    "urgency": true,
+                    "location": "gym",
+                    "link": "gym.ir",
+                    "description": "1hour per day",
+                    "status": null,
+                    "notification": null
+                }
+            }
         }
     },
-    "zhr": {
-        "exercise": {
-            "work_name": "exercise",
-            "work_datetime": "2021-4-13 14:00:00",
-            "category": "sport",
+    "rya": {
+        "visit doctor": {
+            "work_name": "visit doctor",
+            "work_datetime": "2021-10-22 18:30:00",
+            "category": "appoinments",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": ""
+        },
+        "study physics": {
+            "work_name": "study physics",
+            "work_datetime": "2021-02-01 14:00:00",
+            "category": "education",
+            "importance": true,
+            "urgency": false,
+            "location": "",
+            "link": "",
+            "description": ""
+        },
+        "work out": {
+            "work_name": "work out",
+            "work_datetime": "2021-05-11 15:00:00",
+            "category": "sports",
             "importance": true,
             "urgency": false,
             "location": "gym",
-            "link": "gym.ir",
-            "description": "1hour per day",
-            "status": null,
-            "notification": null
+            "link": "",
+            "description": "1 hour is enough"
         }
     }
 }

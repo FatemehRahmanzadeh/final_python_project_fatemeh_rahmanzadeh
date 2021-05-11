@@ -30,7 +30,7 @@ class User:
         this method is going to make an instance from Work object
         :return: instance of Work
         """
-        new_work = work.Work.create_work(self.username)
+        new_work = Work.create_work(self.username)
         self.works.append(new_work)
         return f'{new_work.work_name} added to your work list successfully.'
 

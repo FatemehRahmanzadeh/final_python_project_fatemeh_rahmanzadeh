@@ -10,9 +10,6 @@ import file_manager
 from tabulate import tabulate
 
 
-
-
-
 def delete_work(logged_in_user, target_work):
     """
     this function deletes a work from user work list and from file
@@ -55,7 +52,7 @@ def share(sender_user, target_work):
         reciver_usr = user.User(*(users_from_file[reciver].values()))
         reciver_usr.events[sender_user.username] = target_work
 
-        file_manager.write_to_file('events.json', (target_work.__dict__),reciver, sender_user.username)
+        file_manager.write_to_file('events.json', (target_work.__dict__), reciver, sender_user.username)
 
         return f'{Fore.WHITE}{target_work.work_name} has been sent to {reciver_usr.username}{Fore.RESET}'
 
@@ -74,29 +71,29 @@ def check_events(logged_in_user):
         if all_events == {}:
             print('no new event...')
             break
-        sender_work = {sender:Work(*(w.values())) for sender, w in all_events.items()}
+        sender_work = {sender: Work(*(w.values())) for sender, w in all_events.items()}
         work_select = {}
         choice = 0
-        while choice !=3:
-            i=1
+        while choice != 3:
+            i = 1
             for sender, wrk in sender_work.items():
                 work_select[i] = wrk
                 print(f'{i}. {sender}: {wrk.work_name} ')
-                i+=1
+                i += 1
             choice = int(input(f'{Fore.YELLOW} select a work from list above or enter 3 to back: {Fore.RESET}'))
 
             selected_work = sender_work[choice]
             print(selected_work)
 
             act = int(input(f'what are you going to do?'f'\n'
-                                f'1. accept the work and add it to work list\n2. reject it: '))
+                            f'1. accept the work and add it to work list\n2. reject it: '))
             if act == 2:
                 work_select.pop(choice)
                 continue
             elif act == 1:
                 logged_in_user.accept_a_work(selected_work)
                 file_manager.write_to_file('all_users_works.json', selected_work.__dict__,
-                                                 logged_in_user.username, selected_work.work_name)
+                                           logged_in_user.username, selected_work.work_name)
                 work_select.pop(choice)
         all_events.clear()
         file_manager.write_to_file('events.json', {}, logged_in_user.username)
@@ -193,15 +190,12 @@ def work_menu(logged_in_user, wrk):
                             f'\n5. show "{wrk.work_name}"'
                             f'\n6. share "{wrk.work_name}" with a friend'
                             f'\n7. back to previous page', Fore.RESET)
-
-        while ValueError:
+        action = 0
+        while action != 7:
             try:
                 action = int(input(f'{Fore.GREEN}\nplease select an option from list above:{Fore.RESET}'))
-                if action < 0 or action > 7:
-                    raise ValueError
-                else:
-                    break
-            except ValueError:
+                # if action < 0 or action > 7:
+            except:
                 print(Fore.RED, 'invalid input. Just 1-7 are allowed...', Fore.RED)
         if action == 1:
             print(Fore.BLUE, f'\n{logged_in_user.username} main menu > work menu > {wrk.work_name} > edit ', Fore.RESET)
@@ -235,45 +229,56 @@ def edit_work_menu(user, wrk):
 
     format_string = "%Y-%m-%d %H:%M:%S"
     attributes_dict = {}
-    print(f'{user.username} > work: {wrk.work_name} > edit {wrk.work_name}')
     attribute_lst = list(wrk.__dict__.keys())
 
+    count = 0
+    R = Fore.RESET
     for i in range(1, len(attribute_lst) + 1):
+        if count % 2 == 0:
+            C = Fore.LIGHTCYAN_EX
+        else:
+            C = Fore.LIGHTWHITE_EX
         attributes_dict[i] = attribute_lst[i - 1]
-        print(f'{i}. {attribute_lst[i - 1]} of {wrk.work_name}')
+        print(f'{i}. {C}{attribute_lst[i - 1]} of {wrk.work_name}{R}')
+        count += 1
 
     new_values = {}
-    items = list(map(lambda x: int(x), input('id of items fo editing:(split items with comma)').split(',')))
+    try:
+        items = list(map(lambda x: int(x), input('id of items fo editing:(split items with comma)').split(',')))
+    except:
+        print(f'{Fore.RED} invalid input... just 1 - 10 are allowed.{Fore.RESET}')
 
     edit_items = [attributes_dict[num] for num in items]
     old_values = {_: wrk.__dict__[_] for _ in edit_items}
     out_str = ''
-    with open('all_users_works.json', 'r') as data:
-        all_work_dict = json.load(data)
-        work_dict = all_work_dict[user.username]
-        edit_work_file = work_dict[wrk.work_name]
-
+    work_dict = file_manager.read_from_file('all_users_works.json', user.username)
+    edit_work_file = work_dict[wrk.work_name]
+    cnt = 0
+    R = Fore.RESET
     for itm in edit_items:
+        if cnt % 2 == 0:
+            C = Fore.BLUE
+        else:
+            C = Fore.MAGENTA
+
         if itm == 'importance' or itm == 'urgency':
-            new_val = bool(int(input(f' is {wrk.work_name} {itm}?, current {itm} is {old_values[itm]} (1. yes 0. No)')))
+            new_val = bool(int(input(f'{C} is {wrk.work_name} {itm}?,'
+                                     f' current {itm} is {old_values[itm]} (1. yes 0. No){R}')))
             edit_work_file[itm] = new_val
             new_values[itm] = new_val
         else:
-            new_val = input(f'new values of {itm}, current {itm} is {old_values[itm]}')
+            new_val = input(f'{C}new values of {itm}, current {itm} is {old_values[itm]}{R}')
             edit_work_file[itm] = new_val
             new_values[itm] = new_val
-        out_str += f'{itm} changed from >> {old_values[itm]} to >> {new_val}\n'
-
-    if 'work_datetime' in new_values.keys():
-        new_values['work_datetime'] = datetime.strptime(new_values['work_datetime'], format_string)
+        out_str += f'{C}{itm} changed from >> {old_values[itm]} to >> {new_val}\n{R}'
+        cnt += 1
 
     if 'work_name' in new_values.keys():
         new_work_name = edit_work_file['work_name']
-        all_work_dict[user.username][new_work_name] = edit_work_file
-        all_work_dict[user.username].pop(wrk.work_name)
-        with open('all_users_works.json', 'w') as data:
-            json.dump(all_work_dict, data, ensure_ascii=False)
+        work_dict[new_work_name] = edit_work_file
+        work_dict.pop(wrk.work_name)
 
+    file_manager.write_to_file('all_users_works.json', work_dict, user.username)
     wrk.edit_work(new_values)
     return out_str
 
@@ -301,7 +306,7 @@ def work_categories_menu(logged_in_user):
             work_dict = {i + 1: w for i, w in enumerate(all_categories[selected_cat])}
             work_dict[0] = 'back to categories'
             while True:
-                print('\n', '×' * 30, f'list of works in {selected_cat}:', '×' * 30)
+                print('\n', '×' * 50, f'list of works in {selected_cat}:', '×' * 50)
 
                 for num, work in work_dict.items():
                     if num != 0:
@@ -316,4 +321,3 @@ def work_categories_menu(logged_in_user):
                     break
         else:
             break
-
