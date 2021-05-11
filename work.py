@@ -1,12 +1,11 @@
 import json
 from _datetime import datetime
-from win10toast import ToastNotifier
 from time import sleep
 
 
 class Work:
     def __init__(self, work_name, work_datetime, category, importance=True, urgency=True, location=None,
-                 link=None, status=None, description=None):
+                 link=None, description=None, status=None, notification=None):
         """
         this class models the works that user adds to directory.all the lines in instance methods
         are sample and invalid. some attributes and method maybe add or remove in next phase of project.
@@ -18,9 +17,8 @@ class Work:
         :param link: if work has a link
         :param description: some description about work
         """
-
         self.work_name = work_name
-        self.work_datetime = datetime.strptime(work_datetime, "%m-%d-%Y %H:%M:%S")
+        self.work_datetime = datetime.strptime(work_datetime, "%Y-%m-%d %H:%M:%S")
         self.category = category
         self.importance = importance
         self.urgency = urgency
@@ -28,8 +26,7 @@ class Work:
         self.link = link
         self.description = description
         self.status = status
-        self.priority = 0
-        self.notification = f"time to do {self.work_name}"
+        self.notification = notification
 
     def eisenhower_priority(self):
         """
@@ -38,61 +35,30 @@ class Work:
         """
 
         if self.importance and self.urgency:
-            self.priority = 1
+            return 1
         elif not self.importance and self.urgency:
-            self.priority = 2
+            return 2
         elif self.importance and not self.urgency:
-            self.priority = 3
+            return 3
         elif not self.importance and not self.urgency:
-            self.priority = 4
+            return 4
 
     def notify(self):
         """
         this method shows notification based on self.priority of work
         :return:
         """
-        toast = ToastNotifier()
-        if self.work_datetime <= datetime.now():
-            while True:
-                if self.priority == 1:
-                    sleep(5)
-                    toast.show_toast("Reminder ;)", f"{self.notification}", duration=10)
-                elif self.priority == 2:
-                    toast.show_toast("Reminder ;)", f"{self.notification}", duration=20)
-                elif self.priority == 3:
-                    sleep(86400)
-                    toast.show_toast("Reminder ;)", f"{self.notification}", duration=20)
-                elif self.priority == 4:
-                    sleep(604800)
-                    toast.show_toast("Reminder ;)", f"{self.notification}", duration=20)
+        priority = self.eisenhower_priority()
 
-    def edit_work(self, username, new_values, attributes):
+    def edit_work(self, new_values):
         """
         user can edit attributes of work using this method
         :return: a massage if editing is successful or not
         """
-        out_str = ''
-        with open('all_users_works.json', 'r') as data:
-            work_dict = json.load(data)
-            current_work = work_dict[username][self.work_name]
 
-            if 'work_name' in attributes:
-                idx = attributes.index('work_name')
-                work_dict[username][new_values[idx]] = current_work
-                current_work = work_dict[username][new_values[idx]]
-                work_dict[username].pop(self.work_name)
-
-        old_values = {_: self.__dict__[_] for _ in attributes}
-
-        for attr, new_val in zip(attributes, new_values):
+        for attr, new_val in new_values.items():
             self.__dict__[attr] = new_val
-            current_work[attr] = new_val
-
-            out_str += f'\n{attr}: {old_values[attr]} > changed to > {new_val}'
-
-        with open('all_users_works.json', 'w') as data:
-            json.dump(work_dict, data, ensure_ascii=False)
-        return out_str
+        return self.__dict__
 
     def postpone(self, username, postpone_time):
         """
@@ -131,9 +97,10 @@ class Work:
         return f'status of {self.work_name} changed to {self.status}'
 
     def __str__(self):
-        return f'work id: {self.work_name}\n date: {self.work_datetime}\n' \
-               f'importance: {self.importance}\n' \
-               f'location: {self.location}\n link: {self.link}\n description: {self.description}'
+        return 'work_name: {}  work_datetime: {}  importance: {}  urgency: {}' \
+               '  status: {}  location {}  link: {}  description {}'.format(
+            self.work_name, self.work_datetime, self.importance, self.urgency,
+            self.status, self.location, self.link, self.description)
 
     @classmethod
     def create_work(cls, username):
@@ -141,14 +108,12 @@ class Work:
         this method makes instances from Work
         :return: an instance of Work class
         """
-        format_string = "%m-%d-%Y %H:%M:%S"
 
         work_name = input('title of work:')
-        datetime_in = input('Enter date and time as :(01-31-2020 14:45:37): ')
-        work_datetime = datetime.strptime(datetime_in, format_string)
-        importance = input('is tis work important? 1. Yes  2. No  ')
+        work_datetime = input('Enter date and time as :(year-month-day hour:min:sec): ')
+        importance = input('is this work important? 1. Yes  2. No  ')
         importance = True if importance == '1' else False
-        urgency = input('is your work urgent? 1. Yes  2. No  ')
+        urgency = input('is this work urgent? 1. Yes  2. No  ')
         urgency = True if urgency == '1' else False
         category = input('choose a category for your work: ')
         location = input('location of work (optional): ')
@@ -157,13 +122,10 @@ class Work:
 
         work_dict = {
             'work_name': work_name,
-            'date and time': f"{work_datetime.month}-"
-                             f"{work_datetime.day}-"
-                             f"{work_datetime.year} "
-                             f"{work_datetime.time()}",
+            'work_datetime': work_datetime,
+            'category': category,
             'importance': importance,
             'urgency': urgency,
-            'category': category,
             'location': location,
             'link': link,
             'description': description,

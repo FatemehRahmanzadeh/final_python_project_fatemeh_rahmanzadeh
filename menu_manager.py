@@ -1,57 +1,105 @@
 import json
-
+from colorama import Fore
+import calandar
 import user
+from work import Work
 from datetime import datetime
+from os import path
+import re
+import file_manager
+from tabulate import tabulate
 
 
-def login():
+
+
+
+def delete_work(logged_in_user, target_work):
     """
-    this method takes username and and password from user and pass them to login method of user.
-    it also manage number of times user enters password wrong
+    this function deletes a work from user work list and from file
+    :param logged_in_user: current user
+    :param target_work: selected work object to delete
     :return:
     """
-    tries = 0
-    while tries < 3:
+    user_works = logged_in_user.delete_work(target_work)
+    user_works_file = file_manager.read_from_file('all_users_works.json', logged_in_user.username)
 
-        username = input('please enter your username:')
-        password = input('please enter your password:')
-        current_user = user.User.login(username, password)
-        if not current_user:
-            tries += 1
-            print(f'username or password is wrong. you have {3 - tries} tries')
-        else:
-            user_menu(current_user)
+    user_works_file.pop(target_work.work_name)
+    file_manager.write_to_file('all_users_works.json', user_works_file, logged_in_user.username)
+
+    return f'{target_work.work_name} has been deleted successfully'
+
+
+def share(sender_user, target_work):
+    """
+    this function moves work from sender_user to receiver_user if receiver accepts it
+    :param sender_user:
+    :return:
+    """
+
+    data_from_file = file_manager.read_from_file('all_users_works.json', sender_user.username)
+
+    yes_or_no = int(input(f'\n{Fore.GREEN} do you know your friend username? 1. yes 2. no{Fore.RESET}'))
+
+    if yes_or_no == 1:
+        reciver = input(f'{Fore.BLUE} enter friend username:{Fore.RESET}')
+    elif yes_or_no == 2:
+        users_from_file = file_manager.read_from_file('users_data.json')
+        users_from_file.pop(sender_user.username)
+        all_usernames = {i + 1: username for i, username in enumerate(users_from_file.keys())}
+
+        for num, username in all_usernames.items():
+            print(f'{Fore.CYAN}{num}. {username}{Fore.RESET}')
+
+        select = int(input(f'\n{Fore.MAGENTA} select a friend: '))
+        reciver = all_usernames[select]
+        reciver_usr = user.User(*(users_from_file[reciver].values()))
+        reciver_usr.events[sender_user.username] = target_work
+
+        file_manager.write_to_file('events.json', (target_work.__dict__),reciver, sender_user.username)
+
+        return f'{Fore.WHITE}{target_work.work_name} has been sent to {reciver_usr.username}{Fore.RESET}'
+
+
+def check_events(logged_in_user):
+    """
+    this function checkes event file of user just after log in.
+     User should decide what to do with recieved work.
+    :param logged_in_user: current user in reminder
+    :return: a massage about user decision
+    """
+    all_events = file_manager.read_from_file('events.json')[logged_in_user.username]
+    choice = None
+
+    while choice != 0:
+        if all_events == {}:
+            print('no new event...')
             break
-        if tries >= 3:
-            print('your account is locked for 20 minutes. try later')
+        sender_work = {sender:Work(*(w.values())) for sender, w in all_events.items()}
+        work_select = {}
+        choice = 0
+        while choice !=3:
+            i=1
+            for sender, wrk in sender_work.items():
+                work_select[i] = wrk
+                print(f'{i}. {sender}: {wrk.work_name} ')
+                i+=1
+            choice = int(input(f'{Fore.YELLOW} select a work from list above or enter 3 to back: {Fore.RESET}'))
 
+            selected_work = sender_work[choice]
+            print(selected_work)
 
-def creat_account():
-    user_data = []
-    try:
-        user_data.append(input('email: '))
-        user_data.append(input('your name: '))
-        user_data.append(input('your last name: '))
-        user_data.append(input('define an username: '))
-        user_data.append(input('enter a secure password: '))
-        confirm_password = input('please enter your password again:')
-        assert confirm_password == user_data[4]
-        new_user = user.User.register(user_data)
-        check = int(input('would you like to log in? 1. yes   2. no '))
-        if check == 1:
-            login()
-            return new_user
-        elif check == 2:
-            print('Thanks for registration, see you later')
-            return new_user
-        else:
-            raise ValueError
-    except ValueError:
-        print('invalid input.. please enter a number 1-2')
-
-    except AssertionError:
-        print('password does not match to confirmation please try again')
-        return 0
+            act = int(input(f'what are you going to do?'f'\n'
+                                f'1. accept the work and add it to work list\n2. reject it: '))
+            if act == 2:
+                work_select.pop(choice)
+                continue
+            elif act == 1:
+                logged_in_user.accept_a_work(selected_work)
+                file_manager.write_to_file('all_users_works.json', selected_work.__dict__,
+                                                 logged_in_user.username, selected_work.work_name)
+                work_select.pop(choice)
+        all_events.clear()
+        file_manager.write_to_file('events.json', {}, logged_in_user.username)
 
 
 def user_menu(usr):
@@ -62,26 +110,27 @@ def user_menu(usr):
     :return: output parameters of recalled method.
     """
     act = 0
-    while act != 7:
+    while act != 8:
 
-        print('you are in main menu. what can I do for you?')
-        print('\n 1. add a new work'
-              '\n 2. show works list'
-              '\n 3. go to work directory'
-              '\n 4. share a work with a friend'
-              '\n 5. accept or reject a work'
-              '\n 6. categorize your works'
-              '\n 7. log out')
+        print('\n', Fore.LIGHTMAGENTA_EX, f'{usr.username} > main menu. what can I do for you?', Fore.RESET)
+        print(Fore.CYAN, '\n 1. add a new work'
+                         '\n 2. show works list'
+                         '\n 3. go to work directory'
+                         '\n 4. check events'
+                         '\n 5. accept or reject a work'
+                         '\n 6. categorize your works'
+                         '\n 7. go to calendar'
+                         '\n 8. log out', Fore.RESET)
         try:
-            act = int(input('please choose a task from menu above:'))
-            if act < 0 or act > 7:
+            act = int(input(f'{Fore.GREEN}\nplease choose a task from menu above:{Fore.RESET}'))
+            if act < 0 or act > 8:
                 raise ValueError
         except ValueError:
-            print('invalid input. Just 1-7 are allowed')
+            print(Fore.RED, 'invalid input. Just 1-8 are allowed', Fore.RESET)
         if act == 1:
             print(usr.new_work())
         elif act == 2:
-            usr.show_works()
+            print(usr.show_works())
         elif act == 3:
             if not usr.works:
                 print('no work defined yet')
@@ -90,9 +139,11 @@ def user_menu(usr):
                     print(i + 1, ".", obj.work_name)
 
                 try:
-                    select_work = int(input('enter the work number:'))
+                    select_work = int(input(f'{Fore.GREEN}enter the work number:{Fore.RESET}'))
                     if 1 <= select_work <= len(usr.works):
                         selected = usr.works[select_work - 1]
+                        print(Fore.LIGHTGREEN_EX, f'\n{usr.username} > main menu > {selected.work_name}'
+                                                  f' option menu:', Fore.RESET)
                         work_menu(usr, selected)
                     else:
                         raise ValueError
@@ -100,13 +151,27 @@ def user_menu(usr):
                     print(f'please enter a 1 <= number <= {len(usr.works)}')
 
         elif act == 4:
-            share(usr)
+            check_events(usr)
         elif act == 5:
             print(usr.accept_a_work())
         elif act == 6:
             work_categories_menu(usr)
+        elif act == 7:
+            print(Fore.LIGHTGREEN_EX, f'{usr.username} > main menu > calendar', Fore.RESET)
+            calandar_menu(usr)
         else:
             break
+
+
+def calendar_menu(current_user):
+    """
+    this function is for showing works in calendar
+    :param current_user: logged in user
+    :return:
+    """
+    select = 0
+    while select != 4:
+        calandar.show_calandar()
 
 
 def work_menu(logged_in_user, wrk):
@@ -119,77 +184,98 @@ def work_menu(logged_in_user, wrk):
     """
 
     action = 0
-    while action != 5:
+    while action != 7:
 
-        print(f'{logged_in_user.username} > {wrk.work_name} option menu:')
-
-        print(f'\n1. edit {wrk.work_name}'
-              f'\n2. postpone {wrk.work_name} to another time'
-              f'\n3. change status of {wrk.work_name}. (in progress or done)'
-              f'\n4. delete {wrk.work_name}'
-              f'\n5. back to previous page')
+        print(Fore.MAGENTA, f'\n1. edit {wrk.work_name}'
+                            f'\n2. postpone "{wrk.work_name}" to another time'
+                            f'\n3. change status of "{wrk.work_name}". (in progress or done)'
+                            f'\n4. delete "{wrk.work_name}"'
+                            f'\n5. show "{wrk.work_name}"'
+                            f'\n6. share "{wrk.work_name}" with a friend'
+                            f'\n7. back to previous page', Fore.RESET)
 
         while ValueError:
             try:
-                action = int(input('please select an option from list above:'))
-                if action < 0 or action > 5:
+                action = int(input(f'{Fore.GREEN}\nplease select an option from list above:{Fore.RESET}'))
+                if action < 0 or action > 7:
                     raise ValueError
                 else:
                     break
             except ValueError:
-                print('invalid input. Just 1-4 are allowed...')
+                print(Fore.RED, 'invalid input. Just 1-7 are allowed...', Fore.RED)
         if action == 1:
-            edit_work_menu(logged_in_user.username, wrk)
+            print(Fore.BLUE, f'\n{logged_in_user.username} main menu > work menu > {wrk.work_name} > edit ', Fore.RESET)
+            print(edit_work_menu(logged_in_user, wrk))
         elif action == 2:
             postpone = datetime.strptime(input('enter New date and time as ((01-31-2020 14:45:37)): '),
                                          "%m-%d-%Y %H:%M:%S")
             print(wrk.postpone(logged_in_user.username, postpone))
         elif action == 3:
-            status = input(f'current status: {wrk.status}. please enter new status: ')
+            status = input(Fore.CYAN, f'current status: {wrk.status}. please enter new status: ', Fore.RESET)
             print(wrk.change_status(logged_in_user.username, status))
         elif action == 4:
-            print(logged_in_user.delete_work(wrk.work_name))
+            print(delete_work(logged_in_user, wrk))
             logged_in_user.categorize_works()
             break
+        elif action == 5:
+            print(wrk)
+        elif action == 6:
+            print(share(logged_in_user, wrk))
         else:
             break
 
 
-def edit_work_menu(username, wrk):
+def edit_work_menu(user, wrk):
     """
     this menu let users edit attributes of their works
-    :param username: user logged in to reminder
+    :param user: user logged in to reminder
     :param wrk: selected work object to edit
     :return: an edited work object
     """
-    format_string = {'datetime': "%m-%d-%Y %H:%M:%S", 'date': "%m-%d-%Y", 'time': "%H:%M:%S"}
+
+    format_string = "%Y-%m-%d %H:%M:%S"
     attributes_dict = {}
-    print(f'{username} > {wrk.work_name} > edit {wrk.work_name}')
+    print(f'{user.username} > work: {wrk.work_name} > edit {wrk.work_name}')
     attribute_lst = list(wrk.__dict__.keys())
 
     for i in range(1, len(attribute_lst) + 1):
         attributes_dict[i] = attribute_lst[i - 1]
         print(f'{i}. {attribute_lst[i - 1]} of {wrk.work_name}')
 
-    new_values = []
+    new_values = {}
     items = list(map(lambda x: int(x), input('id of items fo editing:(split items with comma)').split(',')))
 
     edit_items = [attributes_dict[num] for num in items]
+    old_values = {_: wrk.__dict__[_] for _ in edit_items}
+    out_str = ''
+    with open('all_users_works.json', 'r') as data:
+        all_work_dict = json.load(data)
+        work_dict = all_work_dict[user.username]
+        edit_work_file = work_dict[wrk.work_name]
 
-    for i, itm in enumerate(edit_items):
-        new_val = input(f'new values of {itm}')
-
-        if type(new_val) == "<class 'datetime.datetime'>":
-            new_val = datetime.strptime(new_val, format_string[itm])
-            new_values.append(new_val)
-
-        elif new_val.isdigit():
-            new_val = int(new_val)
-            new_values.append(new_val)
+    for itm in edit_items:
+        if itm == 'importance' or itm == 'urgency':
+            new_val = bool(int(input(f' is {wrk.work_name} {itm}?, current {itm} is {old_values[itm]} (1. yes 0. No)')))
+            edit_work_file[itm] = new_val
+            new_values[itm] = new_val
         else:
-            new_values.append(new_val)
-    print(wrk.edit_work(username, new_values, edit_items))
-    return wrk
+            new_val = input(f'new values of {itm}, current {itm} is {old_values[itm]}')
+            edit_work_file[itm] = new_val
+            new_values[itm] = new_val
+        out_str += f'{itm} changed from >> {old_values[itm]} to >> {new_val}\n'
+
+    if 'work_datetime' in new_values.keys():
+        new_values['work_datetime'] = datetime.strptime(new_values['work_datetime'], format_string)
+
+    if 'work_name' in new_values.keys():
+        new_work_name = edit_work_file['work_name']
+        all_work_dict[user.username][new_work_name] = edit_work_file
+        all_work_dict[user.username].pop(wrk.work_name)
+        with open('all_users_works.json', 'w') as data:
+            json.dump(all_work_dict, data, ensure_ascii=False)
+
+    wrk.edit_work(new_values)
+    return out_str
 
 
 def work_categories_menu(logged_in_user):
@@ -231,59 +317,3 @@ def work_categories_menu(logged_in_user):
         else:
             break
 
-
-def share(sender_user):
-    """
-    this function moves work from sender_user to receiver_user if receiver accepts it
-    :param sender_user:
-    :return:
-    """
-    while True:
-        select_work_dict = {i+1: w for i, w in enumerate(sender_user.works)}
-        select_work_dict[0] = "back"
-
-        print('**************** list of works *****************')
-        for i, w in select_work_dict.items():
-            if i > 0:
-                print(i, ".", w.work_name)
-            else:
-                print(i, '.', w)
-
-        select = int(input("enter a work number from list above:"))
-
-        if select > 0:
-            target_work = select_work_dict[select]
-
-            receiver_user_username = input("please enter receiver's username: ")
-
-            with open('all_users_works.json') as user_data:
-                receiver_user = user.User(json.load(user_data)[receiver_user_username])
-            receiver_user.events['receive'] = {'user': sender_user.username, 'work': target_work}
-
-            with open('users_events.json' 'r+') as event_file:
-                events = json.load(event_file)
-                events[receiver_user]['events'].append(receiver_user.events)
-                json.dump(events, event_file, ensure_ascii=False)
-
-            if receiver_user.accept:
-                receiver_user.works.append(target_work)
-
-                target_work_dict = {'work_name': target_work.work_name,
-                                    'date and time': target_work.work_datetime,
-                                    'importance': target_work.importance,
-                                    'urgency': target_work.urgency,
-                                    'category': target_work.category,
-                                    'location': target_work.location,
-                                    'link': target_work.link,
-                                    'description': target_work.description,
-                                    }
-
-                with open('all_users_works.json', 'r') as edit:
-                    all_works = json.load(edit)
-                all_works[receiver_user.username].update({target_work.work_name: target_work_dict})
-
-                with open('all_users_works.json', 'w') as write_file:
-                    json.dump(all_works, write_file, ensure_ascii=False)
-
-            else:
-                break

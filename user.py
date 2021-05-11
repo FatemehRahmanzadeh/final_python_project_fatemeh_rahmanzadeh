@@ -1,8 +1,8 @@
+import file_manager
+from work import Work
 from hashlib import md5
-import json
-import work
-from os import path
-import pprint
+from tabulate import tabulate
+from colorama import Fore
 
 
 class User:
@@ -23,7 +23,6 @@ class User:
         self.fullname = name + last_name
         self.works = []
         self.categories = {}
-        self.accept = False
         self.events = {}
 
     def new_work(self):
@@ -59,66 +58,60 @@ class User:
         for w in self.works:
             if w.work_name == work_name:
                 self.works.remove(w)
-                with open('all_users_works.json', 'r') as all_works:
-                    work_dict = json.load(all_works)
-                    user_works = work_dict[self.username]
-                    user_works.pop(w.work_name)
+            return self.works
 
-                with open('all_users_works.json', 'w') as all_works:
-                    json.dump(work_dict, all_works, ensure_ascii=False)
-                return self.works
 
-    def share_work(self, work_name):
-        """
-        this method is for send a work
-        :param work_name: work that is going to be sent or receive
-        :return: a work and a True flag for sending or an error if work does not exist in user work list
-        """
-        work_names = [w.work_name for w in self.works]
-        if work_name in work_names:
-            for w in self.works:
-                if w.work_name == work_name:
-                    return w
-        else:
-            return f'no such file exist in {self.name} work list'
-
-    def accept_a_work(self, accept, received_work):
+    def accept_a_work(self, received_work):
         """
         this method accepts a work from a user and adds it to user's work list
-        :return: a massage if accepted or rejected based on accept attribute
+        :param received_work: shared work from sender user
+        :return: an accept or reject massage
         """
-        # if accept:
-        #     self.accept = True
-        #     self.works[received_work.work_name] = received_work
-        #     with open('users_data.json', 'r+') as add_new_work:
-        #         all_works = json.load(add_new_work)[self.username]['works']
-        #     all_works[received_work.work_name] = received_work
-
-        return 'work_name from sender username accepted or rejected '
+        work_names = [work.work_name for work in self.works]
+        if received_work.work_name not in work_names:
+            self.works.append(received_work)
+            return f'{Fore.LIGHTGREEN_EX}{received_work.work_name} has been accepted{Fore.RESET}'
+        else:
+            return f'{Fore.YELLOW}{received_work.work_name} already exist in your work list{Fore.RESET}'
 
     def show_works(self):
         """
         this method prints json file of works pretty
         :return:
         """
-        with open('all_users_works.json', 'r') as user_works:
-            works = json.load(user_works)[self.username]
-            print('*'*30, f'list of {self.username} works: ', '*'*30)
-            pprint.pprint(works)
+        my_works_table = {f'{Fore.BLUE}attributes{Fore.RESET}':
+                              [f'{Fore.BLUE}date_time{Fore.RESET}',
+                               f'{Fore.BLUE}category{Fore.RESET}',
+                               f'{Fore.BLUE}importance{Fore.RESET}',
+                               f'{Fore.BLUE}urgency{Fore.RESET}',
+                                f'{Fore.BLUE}status{Fore.RESET}',
+                               f'{Fore.BLUE}location{Fore.RESET}',
+                               f'{Fore.BLUE}link{Fore.RESET}',
+                               f'{Fore.BLUE}status{Fore.RESET}',
+                               f'{Fore.BLUE}description{Fore.RESET}']}
+        for _ in self.works:
+            my_works_table[f'{Fore.BLUE}{_.work_name}{Fore.RESET}'] = \
+                [f'{Fore.LIGHTGREEN_EX}{_.work_datetime}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.category}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.importance}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.urgency}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.status}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.location}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.link}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.status}{Fore.RESET}',
+                 f'{Fore.LIGHTGREEN_EX}{_.description}{Fore.RESET}']
+        return tabulate(my_works_table, my_works_table.keys(), tablefmt="presto")
 
     def __str__(self):
         return f'name: {self.name}\n last name: {self.last_name}\nusername: {self.username}\n' \
                f'Email: {self.user_email}\n list of works: {self.works}'
 
     @classmethod
-    def register(cls, user_data):
+    def register(cls,user_data):
         """
         this method takes information of a User class and makes an instance from it
         :return: an instance of User class or an error about wrong inputs
         """
-
-        file_exist = path.isfile('users_data.json')
-
         new_user_data = {'email': user_data[0],
                          'name': user_data[1],
                          'last_name': user_data[2],
@@ -129,25 +122,16 @@ class User:
         new_user_data['password'] = hashed_password
         new_user = cls(*(new_user_data.values()))
 
-        if file_exist:
-            with open('users_data.json', 'r') as exist_file:
-                all_users_data = json.load(exist_file)
-                if user_data[3] in all_users_data.keys():
-                    print(f'{user_data[3]} already exists')
+        all_users_data = file_manager.read_from_file('users_data.json')
 
-                else:
-                    all_users_data[new_user.username] = new_user_data
-
-                    with open('users_data.json', 'w') as new_file:
-                        json.dump(all_users_data, new_file, ensure_ascii=False)
+        if user_data[3] in all_users_data.keys():
+            print(f'{user_data[3]} already exists')
         else:
-            all_users_data = {new_user.username: new_user_data}
-            with open('users_data.json', 'w') as new_file:
-                json.dump(all_users_data, new_file, ensure_ascii=False)
-        return new_user
+            file_manager.write_to_file('users_data.json',new_user_data, new_user.username)
+            return new_user
 
     @classmethod
-    def login(cls, username, password):
+    def login(cls,username, password):
         """
         this method takes two argument and checks if there is a match user with this information
         :param username: unchecked username
@@ -155,29 +139,28 @@ class User:
         :return: True if username and password are match, or False otherwise
         """
 
-        with open('users_data.json', 'r') as user_data, open('all_users_works.json', 'r') as wrks:
-            data = json.load(user_data)
-            works = json.load(wrks)
+        data = file_manager.read_from_file('users_data.json')
+        works = file_manager.read_from_file('all_users_works.json')
 
-            user_has_work = True if username in works.keys() else False
-            my_works = works[username] if user_has_work else {}
+        user_has_work = True if username in works.keys() else False
+        my_works = works[username] if user_has_work else {}
 
-            password = str(password).encode()
-            hash_password = md5(password).hexdigest()
+        password = str(password).encode()
+        hash_password = md5(password).hexdigest()
 
-            if username in data.keys():
-                if hash_password == data[username]['password']:
-                    current_user = User(*(data[username].values()))
-                    if user_has_work:
-                        for _ in my_works.values():
-                            wrk_obj = work.Work(*(_.values()))
-                            current_user.works.append(wrk_obj)
+        if username in data.keys():
+            if hash_password == data[username]['password']:
+                current_user = cls(*(data[username].values()))
+                if user_has_work:
+                    for _ in my_works.values():
+                        wrk_obj = Work(*(_.values()))
+                        current_user.works.append(wrk_obj)
 
-                    print(f'welcome {current_user.name}. your log in was successful.')
-                    return current_user
-                else:
-                    print('password is wrong...')
-                    return False
+                print(f'welcome {current_user.name}. your log in was successful.')
+                return current_user
             else:
-                print(f'No user named {username}...')
+                print('password is wrong...')
                 return False
+        else:
+            print(f'No user named {username}...')
+            return False
