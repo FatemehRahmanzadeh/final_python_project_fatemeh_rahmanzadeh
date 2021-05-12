@@ -60,7 +60,6 @@ class User:
                 self.works.remove(w)
             return self.works
 
-
     def accept_a_work(self, received_work):
         """
         this method accepts a work from a user and adds it to user's work list
@@ -79,6 +78,9 @@ class User:
         this method prints json file of works pretty
         :return:
         """
+        if not self.works:
+            return f'{Fore.LIGHTCYAN_EX}there is no work in your work list{Fore.RESET}'
+
         my_works_table = {f'{Fore.BLUE}attributes{Fore.RESET}':
                               [f'{Fore.BLUE}date_time{Fore.RESET}',
                                f'{Fore.BLUE}category{Fore.RESET}',

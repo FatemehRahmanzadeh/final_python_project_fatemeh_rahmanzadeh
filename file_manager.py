@@ -24,7 +24,9 @@ def read_from_file(file_name, key=None):
 def write_to_file(file_name, data, key1, key2=None):
     """
     this function takes a dictionary and writes it into an existing json file
-    :param key: key of json file represents data as value
+    :param key1: key of json file represents data as value if there was no inner key
+    :param key2: inner key of json file represents data as value if data were dict of inner data.
+    for example, in users work file key1 is username, key2 is work name
     :param file_name: file name including format.json
     :param data: a dictionary that is going to be write into file
     :return: a massage about writing successful
@@ -37,7 +39,7 @@ def write_to_file(file_name, data, key1, key2=None):
         with open(file_name, 'r') as file:
             data_from_file = json.load(file)
 
-            if key1 in data_from_file.keys()  and key2:
+            if key1 in data_from_file.keys() and key2:
                 data_from_file[key1].update({key2: data})
 
             elif (key1 in data_from_file.keys()) and (not key2):
@@ -50,7 +52,7 @@ def write_to_file(file_name, data, key1, key2=None):
             json.dump(data_from_file, file, indent=4, ensure_ascii=False)
         return f'data has been written into {file_name} successfully'
     else:
-
+        new_data = {}
         if key1 and key2:
             new_data = {key1:{key2: data}}
         elif key1 and not key2:

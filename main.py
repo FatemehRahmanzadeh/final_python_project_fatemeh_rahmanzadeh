@@ -2,6 +2,7 @@ import menu_manager
 from user import User
 from colorama import Fore
 
+
 def login():
     """
     this method takes username and and password from user and pass them to login method of user.
