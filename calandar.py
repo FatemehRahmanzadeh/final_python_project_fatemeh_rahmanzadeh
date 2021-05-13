@@ -1,7 +1,5 @@
 from datetime import datetime
 import calendar
-import user
-import work
 from tabulate import tabulate
 
 my_calendar = calendar.Calendar(6)
@@ -64,3 +62,7 @@ def show_month_works(usr, target_date):
 
 def show_calandar():
     return None
+
+
+
+

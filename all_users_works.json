@@ -9,7 +9,7 @@
             "location": "",
             "link": "",
             "description": "",
-            "status": null
+            "status": "in progress"
         }
     },
     "rza": {
@@ -26,78 +26,42 @@
             "notification": null
         }
     },
-    "ftm": {
-        "study english": {
-            "work_name": "study english",
-            "work_datetime": "2021-05-12 12:30:00",
-            "category": "education",
-            "importance": true,
-            "urgency": false,
-            "location": "",
-            "link": "",
-            "description": ""
-        },
-        "work out": {
-            "work_name": "work out",
-            "work_datetime": "2021-5-19 12:00:00",
-            "category": "sport",
-            "importance": true,
-            "urgency": true,
-            "location": "gym",
-            "link": "gym.ir",
-            "description": "1hour per day",
-            "status": null,
-            "notification": null
-        },
-        "reading": {
-            "work_name": "reading",
-            "work_datetime": "2021-4-23 12:00:00",
-            "category": "learning",
-            "importance": false,
-            "urgency": true,
-            "location": "",
-            "link": "",
-            "description": "",
-            "status": null,
-            "notification": null
-        },
-        "study": {
-            "work_name": "study",
-            "work_datetime": "2021-4-23 12:00:00",
-            "category": "education",
-            "importance": true,
-            "urgency": true,
-            "location": "",
-            "link": "",
-            "description": "",
-            "status": "in progress",
-            "notification": null
-        }
-    },
     "zhr": {
         "work out": {
             "work_name": "work out",
-            "work_datetime": "2021-05-19 12:00:00",
+            "work_datetime": "2021-05-19 13:00:00",
             "category": "sport",
+            "status": "in progress",
             "importance": true,
             "urgency": true,
             "location": "gym",
             "link": "gym.ir",
             "description": "1hour per day",
-            "status": null,
             "notification": null
         },
         "study english": {
             "work_name": "study english",
             "work_datetime": "2021-5-12 12:30:00",
             "category": "education",
+            "status": "in progress",
             "importance": true,
             "urgency": false,
             "location": "",
             "link": "",
             "description": "",
-            "status": null,
             "notification": null
+        },
+        "visit doctor": {
+            "work_name": "visit doctor",
+            "work_datetime": "2021-09-21 18:00:00",
+            "category": "appointments",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": "",
+            "notification": "time to visit doctor"
         }
     },
     "rya": {
@@ -105,12 +69,12 @@
             "work_name": "study english",
             "work_datetime": "2021-5-12 12:30:00",
             "category": "education",
+            "status": "in progress",
             "importance": true,
             "urgency": false,
             "location": "",
             "link": "",
             "description": "",
-            "status": null,
             "notification": null
         }
     }

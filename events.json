@@ -1,7 +1,45 @@
 {
     "zhr": {},
     "rza": {},
-    "sra": {},
+    "sra": {
+        "ftm": {
+            "work_name": "work out",
+            "work_datetime": "2021-5-19 12:00:00",
+            "category": "sport",
+            "importance": true,
+            "urgency": true,
+            "location": "gym",
+            "link": "gym.ir",
+            "description": "1hour per day",
+            "status": null,
+            "notification": null
+        },
+        "zhr": {
+            "work_name": "study english",
+            "work_datetime": "2021-5-12 12:30:00",
+            "category": "education",
+            "importance": true,
+            "urgency": false,
+            "location": "",
+            "link": "",
+            "description": "",
+            "status": null,
+            "notification": null
+        }
+    },
     "rya": {},
-    "ftm": {}
+    "ftm": {
+        "zhr": {
+            "work_name": "visit doctor",
+            "work_datetime": "2021-9-21 18:00:00",
+            "category": "appointments",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": "",
+            "status": "in progress",
+            "notification": "time to visit doctor"
+        }
+    }
 }

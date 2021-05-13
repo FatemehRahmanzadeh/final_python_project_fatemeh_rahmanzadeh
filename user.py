@@ -82,15 +82,18 @@ class User:
             return f'{Fore.LIGHTCYAN_EX}there is no work in your work list{Fore.RESET}'
 
         my_works_table = {f'{Fore.BLUE}attributes{Fore.RESET}':
-                              [f'{Fore.BLUE}date_time{Fore.RESET}',
-                               f'{Fore.BLUE}category{Fore.RESET}',
-                               f'{Fore.BLUE}importance{Fore.RESET}',
-                               f'{Fore.BLUE}urgency{Fore.RESET}',
-                                f'{Fore.BLUE}status{Fore.RESET}',
-                               f'{Fore.BLUE}location{Fore.RESET}',
-                               f'{Fore.BLUE}link{Fore.RESET}',
-                               f'{Fore.BLUE}status{Fore.RESET}',
-                               f'{Fore.BLUE}description{Fore.RESET}']}
+            [
+                f'{Fore.BLUE}date_time{Fore.RESET}',
+                f'{Fore.BLUE}category{Fore.RESET}',
+                f'{Fore.BLUE}importance{Fore.RESET}',
+                f'{Fore.BLUE}urgency{Fore.RESET}',
+                f'{Fore.BLUE}status{Fore.RESET}',
+                f'{Fore.BLUE}location{Fore.RESET}',
+                f'{Fore.BLUE}link{Fore.RESET}',
+                f'{Fore.BLUE}status{Fore.RESET}',
+                f'{Fore.BLUE}description{Fore.RESET}'
+            ]
+        }
         for _ in self.works:
             my_works_table[f'{Fore.BLUE}{_.work_name}{Fore.RESET}'] = \
                 [f'{Fore.LIGHTGREEN_EX}{_.work_datetime}{Fore.RESET}',
@@ -109,7 +112,7 @@ class User:
                f'Email: {self.user_email}\n list of works: {self.works}'
 
     @classmethod
-    def register(cls,user_data):
+    def register(cls, user_data):
         """
         this method takes information of a User class and makes an instance from it
         :return: an instance of User class or an error about wrong inputs
@@ -129,11 +132,11 @@ class User:
         if user_data[3] in all_users_data.keys():
             print(f'{user_data[3]} already exists')
         else:
-            file_manager.write_to_file('users_data.json',new_user_data, new_user.username)
+            file_manager.write_to_file('users_data.json', new_user_data, new_user.username)
             return new_user
 
     @classmethod
-    def login(cls,username, password):
+    def login(cls, username, password):
         """
         this method takes two argument and checks if there is a match user with this information
         :param username: unchecked username
@@ -155,8 +158,7 @@ class User:
                 current_user = cls(*(data[username].values()))
                 if user_has_work:
                     for _ in my_works.values():
-                        wrk_obj = Work(*(_.values()))
-                        current_user.works.append(wrk_obj)
+                        current_user.works.append(Work(*(_.values())))
 
                 print(f'welcome {current_user.name}. your log in was successful.')
                 return current_user

@@ -1,13 +1,11 @@
-import json
-from _datetime import datetime
-from time import sleep
-
-import file_manager
+from datetime import datetime, timedelta as tdelta
+from colorama import Fore
 
 
 class Work:
-    def __init__(self, work_name, work_datetime, category, importance=True, urgency=True, location=None,
-                 link=None, description=None, status=None, notification=None):
+    def __init__(self, work_name, work_datetime, category, status='in progress', importance=True, urgency=True,
+                 location=None,
+                 link=None, description=None, notification='time to do work'):
         """
         this class models the works that user adds to directory.all the lines in instance methods
         are sample and invalid. some attributes and method maybe add or remove in next phase of project.
@@ -50,6 +48,7 @@ class Work:
         this method shows notification based on self.priority of work
         :return:
         """
+
         priority = self.eisenhower_priority()
 
     def edit_work(self, new_values):
@@ -62,76 +61,46 @@ class Work:
             self.__dict__[attr] = new_val
         return self.__dict__
 
-    def postpone(self, username, postpone_time):
+    def postpone(self, dlt_time, ky_word):
         """
-        this method changes the time of work.
-
-        :param username: user who logged in reminder
-        :param postpone_time:
-        :return:
+        this function edits hour part of datetime object
+        :param dlt_time: date-time object to edit
+        :param dlt_time: delta-time of old and new time
+        :param ky_word: represent type of dlt_time if
+         it is hour, day, week or month
         """
-        old_time = self.work_datetime
-        self.work_datetime = postpone_time
-        with open('all_users_works.json', 'r') as edit:
-            all_works = json.load(edit)
-            all_works[username][self.work_name]['work_datetime'] = f"{self.work_datetime.month}-" \
-                                                                   f"{self.work_datetime.day}-" \
-                                                                   f"{self.work_datetime.year} " \
-                                                                   f"{self.work_datetime.time()}"
-        with open('all_users_works.json', 'w') as write_file:
-            json.dump(all_works, write_file, ensure_ascii=False)
+        if ky_word == 'hour':
+            self.work_datetime = self.work_datetime + tdelta(seconds=dlt_time * 3600)
+        elif ky_word == 'day':
+            self.work_datetime = self.work_datetime + tdelta(days=dlt_time)
+        elif ky_word == 'week':
+            self.work_datetime = self.work_datetime + tdelta(weeks=dlt_time)
+        elif ky_word == 'month':
+            self.work_datetime = self.work_datetime + tdelta(days=dlt_time * 30)
+        return self.work_datetime
 
-        return f'{self.work_name} has been postponed from {old_time} to {self.work_datetime}'
-
-    def change_status(self, username, status):
+    def change_status(self):
         """
         change status of work. done or in progress
         :return: a massage if changes are done and saved.
         """
-        self.status = status
-        with open('all_users_works.json', 'r') as edit:
-            all_works = json.load(edit)
-            all_works[username][self.work_name]['status'] = self.status
-
-        with open('all_users_works.json', 'w') as write_file:
-            json.dump(all_works, write_file, ensure_ascii=False)
-
-        return f'status of {self.work_name} changed to {self.status}'
+        if self.status == 'in progress':
+            self.status = 'done'
+            return self.status
+        elif self.status == 'done':
+            self.status = 'in progress'
+            return self.status
 
     def __str__(self):
-        return 'work_name: {}  work_datetime: {}  importance: {}  urgency: {}' \
-               '  status: {}  location {}  link: {}  description {}'.format(
-            self.work_name, self.work_datetime, self.importance, self.urgency,
-            self.status, self.location, self.link, self.description)
+        return 'work_name: {}  work_datetime: {}  importance: {}  urgency: {}   status: {}  location {}' \
+               '  link: {}  description {}'.format(self.work_name, self.work_datetime, self.importance, self.urgency,
+                                                   self.status, self.location, self.link, self.description)
 
     @classmethod
-    def create_work(cls, username):
+    def create_work(cls, work_dict):
         """
         this method makes instances from Work
+        :param work_dict: attributes of work instans
         :return: an instance of Work class
         """
-
-        work_name = input('title of work:')
-        work_datetime = input('Enter date and time as :(year-month-day hour:min:sec): ')
-        importance = input('is this work important? 1. Yes  2. No  ')
-        importance = True if importance == '1' else False
-        urgency = input('is this work urgent? 1. Yes  2. No  ')
-        urgency = True if urgency == '1' else False
-        category = input('choose a category for your work: ')
-        location = input('location of work (optional): ')
-        link = input('add a link related to your work (optional): ')
-        description = input('enter a description for your work (optional): ')
-
-        work_dict = {
-            'work_name': work_name,
-            'work_datetime': work_datetime,
-            'category': category,
-            'importance': importance,
-            'urgency': urgency,
-            'location': location,
-            'link': link,
-            'description': description,
-        }
-        file_manager.write_to_file('all_users_works.json', work_dict, username, work_dict['work_name'])
-
-        return cls(*list(work_dict.values()))
+        return cls(*(work_dict.values()))

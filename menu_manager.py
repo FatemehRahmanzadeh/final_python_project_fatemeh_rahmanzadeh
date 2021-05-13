@@ -2,18 +2,76 @@ from colorama import Fore
 import calandar
 import user
 from work import Work
-from datetime import datetime
 import file_manager
+
+
+def create_work(usr):
+    """
+    this method gets information from user and makes instance of
+    Work by calling creat work of class Work
+    """
+
+    work_name = input('title of work:')
+    work_datetime = input('Enter date and time as :(year-month-day hour:min:sec): ')
+    importance = input('is this work important? 1. Yes  2. No  ')
+    importance = True if importance == '1' else False
+    urgency = input('is this work urgent? 1. Yes  2. No  ')
+    urgency = True if urgency == '1' else False
+    category = input('choose a category for your work: ')
+    location = input('location of work (optional): ')
+    link = input('add a link related to your work (optional): ')
+    description = input('enter a description for your work (optional): ')
+    notification = input('enter a notification for your work(optional)')
+
+    work_dict = {
+        'work_name': work_name,
+        'work_datetime': work_datetime,
+        'category': category,
+        'importance': importance,
+        'urgency': urgency,
+        'location': location,
+        'link': link,
+        'description': description,
+        'notification': notification
+    }
+    new_work = Work.create_work(work_dict)
+    usr.works.append(new_work)
+    print(file_manager.write_to_file('all_users_works.json', work_dict, usr.username, work_dict['work_name']))
+    return f'"{Fore.LIGHTGREEN_EX}{new_work.work_name}" were added to your to do list{Fore.RESET}'
 
 
 def postpone_work(usr, wrk):
     """
     this function postpone a work by changing datetime attribute of work
     :param wrk: target work of user
-    :param usr: logged in user
+    :param usr: logged in user to reminder
     :return: a massage about changing datetime of work
     """
-    print(f'{Fore.GREEN} "{usr.username}"')
+    postpone = 0
+    while postpone != 5:
+        print(f'{Fore.CYAN}How much do you want to postpone "{wrk.work_name}"?'
+              f'\n{Fore.LIGHTYELLOW_EX} 1. one hour'
+              f'\n{Fore.LIGHTGREEN_EX} 2. one day'
+              f'\n{Fore.LIGHTYELLOW_EX} 3. one week'
+              f'\n{Fore.LIGHTGREEN_EX} 4. one month'
+              f'\n{Fore.LIGHTYELLOW_EX}5. back {Fore.RESET}')
+
+        try:
+            p = int(input(f'pick a number for more changes enter >5>1 to edit{wrk.work_name}'))
+            options = {1: 'hour', 2: 'day', 3: 'week', 4: 'month'}
+
+            new_datetime = wrk.postpone(1, options[p])
+            new_dt_file = new_datetime.strftime("%Y-%m-%d %H:%M:%S")
+
+            update_work = file_manager.read_from_file('all_users_works.json', usr.username)
+            update_work[wrk.work_name]['work_datetime'] = new_dt_file
+            print(file_manager.write_to_file('all_users_works.json', update_work, usr.username))
+
+            return f'{Fore.GREEN}{wrk.work_name} has been postponed to {new_datetime}{Fore.RESET}'
+        except ValueError:
+            print(f'{Fore.LIGHTRED_EX} invalid input try again..{Fore.RESET}')
+        except IOError:
+            print(f'{Fore.LIGHTRED_EX}file read and write error{Fore.RESET}')
 
 
 def delete_work(logged_in_user, target_work):
@@ -30,6 +88,41 @@ def delete_work(logged_in_user, target_work):
     file_manager.write_to_file('all_users_works.json', user_works_file, logged_in_user.username)
 
     return f'"{target_work.work_name}" has been deleted successfully'
+
+
+def change_status(usr, wrk):
+    """
+    this function changes status of work from in progress to done and vice versa
+    :param wrk: target work of user
+    :param usr: logged in user to reminder
+    """
+    change_sts = 0
+    while change_sts != 3:
+        print(f'{Fore.LIGHTGREEN_EX}current status of "{wrk.work_name}" is {wrk.status}{Fore.RESET}')
+
+        try:
+            change_sts = int(input(f'do you want to change it? 1. yes{Fore.CYAN}   '
+                                   f'2. {Fore.LIGHTGREEN_EX}No{Fore.MAGENTA}3. back{Fore.RESET}:   '))
+            if change_sts == 1:
+                new_status = wrk.change_status()
+                print(f'{Fore.LIGHTGREEN_EX} status of "{wrk.work_name}" changed to "{wrk.status}"{Fore.RESET}')
+
+                all_usr_wrk = file_manager.read_from_file('all_users_works.json', usr.username)
+                status_ch = all_usr_wrk[wrk.work_name]
+                status_ch['status'] = new_status
+                print(file_manager.write_to_file('all_users_works.json', status_ch, usr.username, wrk.work_name))
+                break
+
+            elif change_sts == 2:
+                print(f'change status of "{wrk.work_name}" has been aborted')
+                break
+            else:
+                ValueError(change_sts)
+                continue
+        except ValueError:
+            print(f'invalid input, try again..')
+        except IOError:
+            print('something went wrong about "all_users_works.json" file')
 
 
 def share(sender_user, target_work):
@@ -75,51 +168,54 @@ def check_events(logged_in_user):
     """
     all_events = file_manager.read_from_file('events.json')[logged_in_user.username]
 
-    if not all_events:
-        print('no new event...')
-    sender_work = {i+1: event for i, event in enumerate(all_events.items())}
-    work_select = {}
-    for i, evnt in sender_work.items():
-        work_select[i] = (evnt[0], (Work(*(evnt[1].values()))))
+    while True:
+        if not all_events:
+            print(f'{Fore.GREEN}no new event...{Fore.RESET}')
+            back = input('enter "b" to back')
+            if back:
+                break
+        else:
+            sender_work = {i + 1: event for i, event in enumerate(all_events.items())}
+            work_select = {}
+            for i, evnt in sender_work.items():
+                work_select[i] = (evnt[0], (Work(*(evnt[1]))))
 
-    options = len(work_select)
+            options = len(work_select)
 
-    while work_select:
-        for i, evnt in work_select.items():
-            print(f'{i}. {evnt[0]}: "{evnt[1].work_name}"')
-        print('0. back to main menu')
+            while work_select:
+                for i, evnt in work_select.items():
+                    print(f'{i}. {evnt[0]}: "{evnt[1].work_name}"')
+                print('0. back to main menu')
 
-        select = int(input('choose a work or enter 0 to back:'))
+                select = int(input('choose a work or enter 0 to back:'))
 
-        if 0 < select <= options:
-            temp = work_select.pop(select)
-            print(temp)
-            slct_wrk = temp[1]
-            print(slct_wrk)
-            all_events.pop(temp[0])
-            print(all_events)
-            print(file_manager.write_to_file('events.json', all_events, logged_in_user.username))
+                if 0 < select <= options:
+                    temp = work_select.pop(select)
+                    slct_wrk = temp[1]
+                    all_events.pop(temp[0])
+                    print(file_manager.write_to_file('events.json', all_events, logged_in_user.username))
 
-            print(f'{Fore.GREEN}information of "{slct_wrk.work_name}": {Fore.RESET}')
-            print(f'{slct_wrk}')
+                    print(f'{Fore.GREEN}information of "{slct_wrk.work_name}": {Fore.RESET}')
+                    print(f'{slct_wrk}')
 
-            act = int(input('1. accept 2. reject:'))
-            if act == 1:
-                print(logged_in_user.accept_a_work(slct_wrk))
-                print(file_manager.write_to_file('all_users_works.json', slct_wrk.__dict__,
-                                                 logged_in_user.username, slct_wrk.work_name))
+                    act = int(input('1. accept 2. reject:'))
+                    if act == 1:
+                        print(logged_in_user.accept_a_work(slct_wrk))
+                        print(file_manager.write_to_file('all_users_works.json', slct_wrk.__dict__,
+                                                         logged_in_user.username, slct_wrk.work_name))
 
-            elif act == 2:
-                print('')
-                continue
-        elif select == 0:
-            print(f'{Fore.CYAN} event check has been aborted {Fore.RESET}')
-            break
+                    elif act == 2:
+                        print(f'{Fore.LIGHTYELLOW_EX}{slct_wrk.work_name} has been rejected{Fore.RESET}')
+                        continue
+                elif select == 0:
+                    print(f'{Fore.CYAN} event check has been aborted {Fore.RESET}')
+                    break
 
-    if not work_select:
-        all_events.clear()
-        sender_work.clear()
-        print(file_manager.write_to_file('events.json', {}, logged_in_user.username))
+            if not work_select:
+                all_events.clear()
+                sender_work.clear()
+                print(file_manager.write_to_file('events.json', {}, logged_in_user.username))
+                break
 
 
 def user_menu(usr):
@@ -134,7 +230,7 @@ def user_menu(usr):
 
         print('\n', Fore.LIGHTMAGENTA_EX, f'"{usr.username}" > main menu. what can I do for you?', Fore.RESET)
         print(Fore.CYAN, '\n 1. add a new work'
-                         '\n 2. show works list'
+                         '\n 2. show to do list'
                          '\n 3. go to work directory'
                          '\n 4. check events'
                          '\n 5. categorize your works'
@@ -148,7 +244,7 @@ def user_menu(usr):
             print(Fore.RED, 'invalid input. Just 1-8 are allowed', Fore.RESET)
         if act == 1:
             print(f'{Fore.WHITE}"{usr.username}" > main menu > add a new work{Fore.RESET}')
-            print(usr.new_work())
+            print(create_work(usr))
         elif act == 2:
             print(f'{Fore.WHITE}"{usr.username}" > main menu > {usr.username}`s works list{Fore.RESET}')
             print(usr.show_works())
@@ -226,12 +322,11 @@ def work_menu(logged_in_user, wrk):
             print(Fore.BLUE, f'\n{logged_in_user.username} main menu > work menu > {wrk.work_name} > edit ', Fore.RESET)
             print(edit_work_menu(logged_in_user, wrk))
         elif action == 2:
-            postpone = datetime.strptime(input('enter New date and time as ((01-31-2020 14:45:37)): '),
-                                         "%m-%d-%Y %H:%M:%S")
-            print(wrk.postpone(logged_in_user.username, postpone))
+            print(f'{Fore.GREEN} "{logged_in_user.username}" > "{wrk.work_name}" > postpone:{Fore.RESET}')
+            print(postpone_work(logged_in_user, wrk))
+
         elif action == 3:
-            status = input(f'{Fore.CYAN}current status: {wrk.status}. please enter new status: {Fore.RESET}')
-            print(wrk.change_status(logged_in_user.username, status))
+            print(change_status(logged_in_user, wrk))
         elif action == 4:
             print(delete_work(logged_in_user, wrk))
             break
