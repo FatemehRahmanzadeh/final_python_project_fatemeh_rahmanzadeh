@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta as tdelta
+from datetime import datetime as dt, timedelta as tdelta
 from colorama import Fore
 
 
@@ -18,7 +18,7 @@ class Work:
         :param description: some description about work
         """
         self.work_name = work_name
-        self.work_datetime = datetime.strptime(work_datetime, "%Y-%m-%d %H:%M:%S")
+        self.work_datetime = dt.strptime(work_datetime, "%Y-%m-%d %H:%M:%S")
         self.category = category
         self.importance = importance
         self.urgency = urgency
