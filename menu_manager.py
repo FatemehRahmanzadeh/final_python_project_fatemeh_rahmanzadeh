@@ -178,7 +178,7 @@ def check_events(logged_in_user):
             sender_work = {i + 1: event for i, event in enumerate(all_events.items())}
             work_select = {}
             for i, evnt in sender_work.items():
-                work_select[i] = (evnt[0], (Work(*(evnt[1]))))
+                work_select[i] = (evnt[0], (Work(*(evnt[1].values()))))
 
             options = len(work_select)
 

@@ -33,7 +33,7 @@ def write_to_file(file_name, data, key1, key2=None):
     """
     for val in data.values():
         if isinstance(val, datetime):
-            data['work_datetime'] = f"{val.year}-{val.month}-{val.day} {val.time()}"
+            data['work_datetime'] = f"{val.date()} {val.time()}"
 
     if path.isfile(file_name):
         with open(file_name, 'r') as file:
