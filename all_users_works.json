@@ -1,16 +1,40 @@
 {
     "rza": {
-        "study": {
-            "work_name": "study",
+        "study english": {
+            "work_name": "study english",
             "work_datetime": "2021-05-14 05:36:00",
             "category": "education",
             "status": "in progress",
-            "importance": false,
-            "urgency": true,
+            "importance": true,
+            "urgency": false,
             "location": "",
             "link": "",
             "description": "",
-            "notification": null
+            "notification": "time to learn "
+        },
+        "check portal": {
+            "work_name": "check portal",
+            "work_datetime": "2021-05-15 03:47:00",
+            "category": "educational",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "portal.university.ac.ir",
+            "description": "check for select units",
+            "notification": "time to select unit"
+        },
+        "shopping": {
+            "work_name": "shopping",
+            "work_datetime": "2021-05-16 16:00:00",
+            "category": "rutins",
+            "status": "in progress",
+            "importance": true,
+            "urgency": false,
+            "location": "",
+            "link": "",
+            "description": "buy books",
+            "notification": "do not forget to by your books"
         }
     },
     "zhr": {
@@ -68,11 +92,11 @@
     "ftm": {
         "visit dentist": {
             "work_name": "visit dentist",
-            "work_datetime": "2021-05-14 20:24:00",
+            "work_datetime": "2021-05-15 00:06:00",
             "category": "appointments",
             "status": "in progress",
-            "importance": true,
-            "urgency": false,
+            "importance": false,
+            "urgency": true,
             "location": "sara's home",
             "link": "",
             "description": "",
@@ -80,7 +104,7 @@
         },
         "exercise": {
             "work_name": "exercise",
-            "work_datetime": "2021-05-14 20:00:00",
+            "work_datetime": "2021-05-15 00:00:00",
             "category": "fun",
             "status": "in progress",
             "importance": true,

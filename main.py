@@ -13,7 +13,7 @@ def login():
     :return:
     """
     tries = 0
-    while tries < 3:
+    while True:
 
         username = input(f'{Fore.YELLOW}please enter your username:')
         password = input(f'please enter your password:{Fore.RESET}')
@@ -22,11 +22,13 @@ def login():
             tries += 1
             print(f'{Fore.RED}username or password is wrong. you have {3 - tries} tries{Fore.RESET}')
         else:
-            menu_manager.multi_threads(menu_manager.user_menu, menu_manager.notify_on, current_user, current_user)
-            break
+            out = menu_manager.multi_threads(menu_manager.user_menu, menu_manager.notify_on, current_user, current_user)
+            menu_manager.reminder_logger.info(f"{current_user} logged in")
+            if not out:
+                break
         if tries >= 3:
             print(f'{Fore.RED}your account is locked for 20 minutes. try later{Fore.RESET}')
-        return current_user
+            break
 
 
 def creat_account():
@@ -62,7 +64,7 @@ while True:
 
     if action == '1':
         login()
-        break
+
     elif action == '2':
         creat_account()
     elif action == '3':

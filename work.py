@@ -1,3 +1,4 @@
+import datetime
 import time
 from datetime import datetime as dt, timedelta as tdelta
 from plyer import notification as ntftion
@@ -57,48 +58,60 @@ class Work:
         priority 4 --> at the end of the week (sunday)
             :return: a tuple of priority and notification time
         """
+        if self.status != 'done':
+            if self.importance and self.urgency:
+                return 1, self.work_datetime
+            elif not self.importance and self.urgency:
+                return 2, self.work_datetime
 
-        if self.importance and self.urgency:
-            return 1, self.work_datetime
-        elif not self.importance and self.urgency:
-            return 2, self.work_datetime
+            elif self.importance and not self.urgency:
+                if self.work_datetime.hour < 18:
+                    hours = (18 - self.work_datetime.hour)
+                else:
+                    hours = 0
+                time_ntf = self.postpone(hours, 'hour')
+                return 3, time_ntf
 
-        elif self.importance and not self.urgency:
-            if self.work_datetime.hour:
-                hours = (18 - self.work_datetime.hour)
-            else:
-                hours = 0
-            time_ntf = self.postpone(hours, 'hour')
-            return 3, time_ntf
-
-        elif not self.importance and not self.urgency:
-            dys = (6 - self.work_datetime.weekday())
-            time_ntf = self.postpone(dys, 'day')
-            return 4, time_ntf
+            elif not self.importance and not self.urgency:
+                dys = (6 - self.work_datetime.weekday())
+                time_ntf = self.postpone(dys, 'day')
+                return 4, time_ntf
+        else:
+            return 0
 
     def notify(self):
         """
         this method shows notification based on self.priority of work
         :return:
         """
-        priority, time_ntf = self.eisenhower_priority()
         now = dt.now()
 
-        while (now.day <= time_ntf.day) and (self.status != 'done'):
-
+        def remind():
+            """
+            this function shows a pop-up using windows notification
+            """
             ntftion.notify('reminder', f"{self.notification}:"
                                        f"{self.work_name}"
                                        f"{self.work_datetime.time()} ", app_icon='reminder.ico', timeout=10)
-            if priority == 1:
-                # time.sleep(5*60)
-                time.sleep(60)
-                now = dt.now()
-            elif priority == 2:
-                break
-            elif priority == 3:
-                self.postpone(1, 'day')
-            elif priority == 4:
-                self.postpone(1, 'week')
+        if self.eisenhower_priority():
+            priority, time_ntf = self.eisenhower_priority()
+
+            while now.day <= time_ntf.day:
+                if priority == 1:
+                    remind()
+                    time.sleep(5*60)
+
+                elif priority == 2 and now.time() == self.work_datetime.time():
+                    remind()
+                    break
+                elif priority == 3 and now.time().hour == 18:
+                    remind()
+                    self.postpone(1, 'day')
+                elif priority == 4 and now.weekday() == 6:
+                    remind()
+                    self.postpone(1, 'week')
+        else:
+            pass
 
     def edit_work(self, new_values):
         """
@@ -122,8 +135,19 @@ class Work:
             self.status = 'in progress'
             return self.status
 
+    def work_refresh(self):
+        """
+        this method updates datetime of undone works from last weeks
+        """
+        now = datetime.datetime.now()
+        p_week = now.isocalendar()[1] - self.work_datetime.isocalendar()[1]
+        if 1 <= p_week:
+            self.work_datetime = now
+        else:
+            pass
+
     def __str__(self):
-        return 'work_name: {}  work_datetime: {}  importance: {}  urgency: {}   status: {}  location {}' \
+        return 'work_name: {}\nwork_datetime: {}\nimportance: {}\nurgency: {}\nstatus: {}\nlocation {}' \
                '  link: {}  description {}'.format(self.work_name, self.work_datetime, self.importance, self.urgency,
                                                    self.status, self.location, self.link, self.description)
 
@@ -135,7 +159,6 @@ class Work:
         :return: an instance of Work class
         """
         return cls(*(work_dict.values()))
-
 
 # w = Work('test',"2021-05-14 01:31:00", 'tests')
 # w.notify()

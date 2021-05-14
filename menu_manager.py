@@ -1,3 +1,5 @@
+import datetime
+import logging
 from colorama import Fore
 import calandar
 import user
@@ -5,6 +7,18 @@ from work import Work
 import file_manager
 import threading
 import time
+
+reminder_logger = logging.getLogger(__name__)
+reminder_logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler('file.log')
+std_handler = logging.StreamHandler()
+file_handler.setLevel(logging.INFO)
+std_handler.setLevel(logging.INFO)
+log_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+file_handler.setFormatter(log_format)
+std_handler.setFormatter(log_format)
+reminder_logger.addHandler(file_handler)
+reminder_logger.addHandler(std_handler)
 
 
 def create_work(usr):
@@ -40,6 +54,7 @@ def create_work(usr):
     new_work = Work.create_work(work_dict)
     usr.works.append(new_work)
     print(file_manager.write_to_file('all_users_works.json', work_dict, usr.username, work_dict['work_name']))
+    reminder_logger.info(f"{usr.username} created {new_work.work_name} successfully", exc_info=True)
     return f'"{Fore.LIGHTGREEN_EX}{new_work.work_name}" were added to your to do list{Fore.RESET}'
 
 
@@ -82,9 +97,20 @@ def notify_on(usr):
     this function enables notification for every tasks
     if its time has come notify of work object will recall
     """
+    now = datetime.datetime.now()
+    threads = []
     if usr.works:
         for _ in usr.works:
-            _.notify()
+            _.work_refresh()
+            if _.work_datetime.day == now.day:
+                th = threading.Thread(_.notify)
+                th.setDaemon(True) if not _.urgency else th.setDaemon(False)
+                th.start()
+                threads.append(th)
+
+    for notify in threads:
+        notify.join()
+
         return f'{Fore.LIGHTMAGENTA_EX} task reminder alarm on{Fore.RESET}'
     else:
         return f'{Fore.RED} task list is empty...{Fore.RESET}'
@@ -238,11 +264,19 @@ def multi_threads(function_1, function_2, args1, args2):
     """
     switches between threads
     """
-    th1 = threading.Thread(target=function_1, args=(args1,), daemon=True)
-    th2 = threading.Thread(target=function_2, args=(args2,))
-    th2.start()
-    th1.start()
-    th2.join()
+    th1 = threading.Thread(target=function_1, args=(args1,))
+    th2 = threading.Thread(target=function_2, args=(args2,), daemon=True)
+    try:
+        th1.start()
+        th1.join()
+        th2.start()
+        th2.join()
+    except threading.ThreadError:
+        print(f'{Fore.RED} Error in running thread{Fore.RESET}')
+        reminder_logger.error("Error running threads")
+        pass
+    if not th1.is_alive():
+        return 0
 
 
 def user_menu(usr):
@@ -269,6 +303,7 @@ def user_menu(usr):
                 raise ValueError
         except ValueError:
             print(Fore.RED, 'invalid input. Just 1-8 are allowed', Fore.RESET)
+            continue
         if act == 1:
             print(f'{Fore.WHITE}"{usr.username}" > main menu > add a new work{Fore.RESET}')
             print(create_work(usr))
