@@ -24,15 +24,19 @@ class User:
         self.works = []
         self.categories = {}
         self.events = {}
+        # self.notify_on()
 
-    def new_work(self):
-        """
-        this method is going to make an instance from Work object
-        :return: instance of Work
-        """
-        new_work = Work.create_work(self.username)
-        self.works.append(new_work)
-        return f'{new_work.work_name} added to your work list successfully.'
+    # def notify_on(self):
+    #     """
+    #     this function enables notification for every tasks
+    #     if its time has come notify of work object will recall
+    #     """
+    #     if self.works:
+    #         for _ in self.works:
+    #             _.notify()
+    #         return f'{Fore.LIGHTMAGENTA_EX} task reminder alarm on{Fore.RESET}'
+    #     else:
+    #         return f'{Fore.RED} task list is empty...{Fore.RESET}'
 
     def categorize_works(self):
         """
@@ -90,7 +94,6 @@ class User:
                 f'{Fore.BLUE}status{Fore.RESET}',
                 f'{Fore.BLUE}location{Fore.RESET}',
                 f'{Fore.BLUE}link{Fore.RESET}',
-                f'{Fore.BLUE}status{Fore.RESET}',
                 f'{Fore.BLUE}description{Fore.RESET}'
             ]
         }
@@ -103,7 +106,6 @@ class User:
                  f'{Fore.LIGHTGREEN_EX}{_.status}{Fore.RESET}',
                  f'{Fore.LIGHTGREEN_EX}{_.location}{Fore.RESET}',
                  f'{Fore.LIGHTGREEN_EX}{_.link}{Fore.RESET}',
-                 f'{Fore.LIGHTGREEN_EX}{_.status}{Fore.RESET}',
                  f'{Fore.LIGHTGREEN_EX}{_.description}{Fore.RESET}']
         return tabulate(my_works_table, my_works_table.keys(), tablefmt="presto")
 
@@ -168,3 +170,7 @@ class User:
         else:
             print(f'No user named {username}...')
             return False
+
+
+# if __name__ == "__main__":
+#     pass

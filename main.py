@@ -1,6 +1,8 @@
 import menu_manager
 from user import User
 from colorama import Fore
+# import multiprocessing
+import threading
 
 
 def login():
@@ -15,14 +17,21 @@ def login():
         username = input(f'{Fore.YELLOW}please enter your username:')
         password = input(f'please enter your password:{Fore.RESET}')
         current_user = User.login(username, password)
+        th1 = threading.Thread(target=menu_manager.user_menu, args=(current_user,), daemon=True)
+        th2 = threading.Thread(target=menu_manager.notify_on, args=(current_user,))
+
         if not current_user:
             tries += 1
             print(f'{Fore.RED}username or password is wrong. you have {3 - tries} tries{Fore.RESET}')
         else:
-            menu_manager.user_menu(current_user)
+
+            th1.start()
+            th2.start()
+            th2.join()
             break
         if tries >= 3:
             print(f'{Fore.RED}your account is locked for 20 minutes. try later{Fore.RESET}')
+        return current_user
 
 
 def creat_account():

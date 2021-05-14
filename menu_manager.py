@@ -3,6 +3,8 @@ import calandar
 import user
 from work import Work
 import file_manager
+import requests
+import time
 
 
 def create_work(usr):
@@ -27,6 +29,7 @@ def create_work(usr):
         'work_name': work_name,
         'work_datetime': work_datetime,
         'category': category,
+        'status': 'in progress',
         'importance': importance,
         'urgency': urgency,
         'location': location,
@@ -72,6 +75,19 @@ def postpone_work(usr, wrk):
             print(f'{Fore.LIGHTRED_EX} invalid input try again..{Fore.RESET}')
         except IOError:
             print(f'{Fore.LIGHTRED_EX}file read and write error{Fore.RESET}')
+
+
+def notify_on(usr):
+    """
+    this function enables notification for every tasks
+    if its time has come notify of work object will recall
+    """
+    if usr.works:
+        for _ in usr.works:
+            _.notify()
+        return f'{Fore.LIGHTMAGENTA_EX} task reminder alarm on{Fore.RESET}'
+    else:
+        return f'{Fore.RED} task list is empty...{Fore.RESET}'
 
 
 def delete_work(logged_in_user, target_work):

@@ -1,5 +1,6 @@
+import time
 from datetime import datetime as dt, timedelta as tdelta
-from colorama import Fore
+from plyer import notification as ntftion
 
 
 class Work:
@@ -28,39 +29,6 @@ class Work:
         self.status = status
         self.notification = notification
 
-    def eisenhower_priority(self):
-        """
-        this method shows a notification based on importance attribute of work
-            :return: a notification
-        """
-
-        if self.importance and self.urgency:
-            return 1
-        elif not self.importance and self.urgency:
-            return 2
-        elif self.importance and not self.urgency:
-            return 3
-        elif not self.importance and not self.urgency:
-            return 4
-
-    def notify(self):
-        """
-        this method shows notification based on self.priority of work
-        :return:
-        """
-
-        priority = self.eisenhower_priority()
-
-    def edit_work(self, new_values):
-        """
-        user can edit attributes of work using this method
-        :return: a massage if editing is successful or not
-        """
-
-        for attr, new_val in new_values.items():
-            self.__dict__[attr] = new_val
-        return self.__dict__
-
     def postpone(self, dlt_time, ky_word):
         """
         this function edits hour part of datetime object
@@ -78,6 +46,69 @@ class Work:
         elif ky_word == 'month':
             self.work_datetime = self.work_datetime + tdelta(days=dlt_time * 30)
         return self.work_datetime
+
+    def eisenhower_priority(self):
+        """
+        this method sets priority and time of notification based on importance attribute of work
+        notification repeat:
+        priority 1 -->  every 5 minutes during the day
+        priority 2 --> just in time
+        priority 3 --> at the end of the day (18:00:00)
+        priority 4 --> at the end of the week (sunday)
+            :return: a tuple of priority and notification time
+        """
+
+        if self.importance and self.urgency:
+            return 1, self.work_datetime
+        elif not self.importance and self.urgency:
+            return 2, self.work_datetime
+
+        elif self.importance and not self.urgency:
+            if self.work_datetime.hour:
+                hours = (18 - self.work_datetime.hour)
+            else:
+                hours = 0
+            time_ntf = self.postpone(hours, 'hour')
+            return 3, time_ntf
+
+        elif not self.importance and not self.urgency:
+            dys = (6 - self.work_datetime.weekday())
+            time_ntf = self.postpone(dys, 'day')
+            return 4, time_ntf
+
+    def notify(self):
+        """
+        this method shows notification based on self.priority of work
+        :return:
+        """
+        priority, time_ntf = self.eisenhower_priority()
+        now = dt.now()
+
+        while (now.day <= time_ntf.day) and (self.status != 'done'):
+
+            ntftion.notify('reminder', f"{self.notification}:"
+                                       f"{self.work_name}"
+                                       f"{self.work_datetime.time()} ", app_icon='reminder.ico', timeout=10)
+            if priority == 1:
+                # time.sleep(5*60)
+                time.sleep(10)
+                now = dt.now()
+            elif priority == 2:
+                break
+            elif priority == 3:
+                self.postpone(1, 'day')
+            elif priority == 4:
+                self.postpone(1, 'week')
+
+    def edit_work(self, new_values):
+        """
+        user can edit attributes of work using this method
+        :return: a massage if editing is successful or not
+        """
+
+        for attr, new_val in new_values.items():
+            self.__dict__[attr] = new_val
+        return self.__dict__
 
     def change_status(self):
         """
@@ -100,7 +131,11 @@ class Work:
     def create_work(cls, work_dict):
         """
         this method makes instances from Work
-        :param work_dict: attributes of work instans
+        :param work_dict: attributes of work instance
         :return: an instance of Work class
         """
         return cls(*(work_dict.values()))
+
+
+# w = Work('test',"2021-05-14 01:31:00", 'tests')
+# w.notify()

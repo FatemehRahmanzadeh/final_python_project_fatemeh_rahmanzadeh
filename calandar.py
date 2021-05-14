@@ -61,8 +61,4 @@ def show_month_works(usr, target_date):
 
 
 def show_calandar():
-    return None
-
-
-
-
+    pass
