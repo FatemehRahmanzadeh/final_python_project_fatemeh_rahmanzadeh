@@ -1,29 +1,4 @@
 {
-    "sra": {
-        "reading": {
-            "work_name": "reading",
-            "work_datetime": "2021-04-23 12:00:00",
-            "category": "learning",
-            "importance": false,
-            "urgency": true,
-            "location": "",
-            "link": "",
-            "description": "",
-            "status": "in progress"
-        },
-        "visit sara": {
-            "work_name": "visit sara",
-            "work_datetime": "2021-05-14 16:00:00",
-            "category": "appointments",
-            "status": "in progress",
-            "importance": "sara's home",
-            "urgency": "",
-            "location": "",
-            "link": "",
-            "description": true,
-            "notification": "time to do work"
-        }
-    },
     "rza": {
         "study": {
             "work_name": "study",
@@ -91,17 +66,29 @@
         }
     },
     "ftm": {
-        "visit sara": {
-            "work_name": "visit sara",
-            "work_datetime": "2021-05-14 16:00:00",
+        "visit dentist": {
+            "work_name": "visit dentist",
+            "work_datetime": "2021-05-14 20:24:00",
             "category": "appointments",
-            "status": "done",
+            "status": "in progress",
             "importance": true,
             "urgency": false,
             "location": "sara's home",
             "link": "",
             "description": "",
             "notification": "test"
+        },
+        "exercise": {
+            "work_name": "exercise",
+            "work_datetime": "2021-05-14 20:00:00",
+            "category": "fun",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": "",
+            "notification": "burn some fat"
         }
     }
 }

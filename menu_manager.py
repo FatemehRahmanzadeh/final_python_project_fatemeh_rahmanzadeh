@@ -3,7 +3,7 @@ import calandar
 import user
 from work import Work
 import file_manager
-import requests
+import threading
 import time
 
 
@@ -234,6 +234,17 @@ def check_events(logged_in_user):
                 break
 
 
+def multi_threads(function_1, function_2, args1, args2):
+    """
+    switches between threads
+    """
+    th1 = threading.Thread(target=function_1, args=(args1,), daemon=True)
+    th2 = threading.Thread(target=function_2, args=(args2,))
+    th2.start()
+    th1.start()
+    th2.join()
+
+
 def user_menu(usr):
     """
     this function runs when user log in successfully. methods
@@ -244,12 +255,12 @@ def user_menu(usr):
     act = 0
     while act != 7:
 
-        print('\n', Fore.LIGHTMAGENTA_EX, f'"{usr.username}" > main menu. what can I do for you?', Fore.RESET)
+        print('\n', Fore.LIGHTMAGENTA_EX, f'"{usr.username}" > main menu.', Fore.RESET)
         print(Fore.CYAN, '\n 1. add a new work'
-                         '\n 2. show to do list'
+                         '\n 2. show all works'
                          '\n 3. go to work directory'
                          '\n 4. check events'
-                         '\n 5. categorize your works'
+                         '\n 5. categorize works'
                          '\n 6. go to calendar'
                          '\n 7. log out', Fore.RESET)
         try:

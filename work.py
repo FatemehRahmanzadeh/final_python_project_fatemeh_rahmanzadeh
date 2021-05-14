@@ -91,7 +91,7 @@ class Work:
                                        f"{self.work_datetime.time()} ", app_icon='reminder.ico', timeout=10)
             if priority == 1:
                 # time.sleep(5*60)
-                time.sleep(10)
+                time.sleep(60)
                 now = dt.now()
             elif priority == 2:
                 break
