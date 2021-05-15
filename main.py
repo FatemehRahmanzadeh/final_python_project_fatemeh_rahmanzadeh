@@ -1,9 +1,8 @@
 import time
-
+import file_manager
 import menu_manager
 from user import User
 from colorama import Fore
-import threading
 
 
 def login():
@@ -12,6 +11,7 @@ def login():
     it also manage number of times user enters password wrong
     :return:
     """
+    users = file_manager.read_from_file('users_data.json')
     tries = 0
     while True:
 
@@ -22,12 +22,15 @@ def login():
             tries += 1
             print(f'{Fore.RED}username or password is wrong. you have {3 - tries} tries{Fore.RESET}')
         else:
-            out = menu_manager.multi_threads(menu_manager.user_menu, menu_manager.notify_on, current_user, current_user)
             menu_manager.reminder_logger.info(f"{current_user} logged in")
+            out = menu_manager.multi_threads(menu_manager.user_menu, menu_manager.notify_on,
+                                             current_user, current_user)
             if not out:
                 break
         if tries >= 3:
             print(f'{Fore.RED}your account is locked for 20 minutes. try later{Fore.RESET}')
+            if username in users:
+                menu_manager.reminder_logger.info(f"{username}'s account locked")
             break
 
 
@@ -56,10 +59,12 @@ def creat_account():
 
 
 while True:
-    print('>' * 20, 'welcome to reminder', '<' * 20)
+    print(Fore.LIGHTCYAN_EX, '\n', '>' * 20, 'welcome to reminder', '<' * 20, '\n', Fore.RESET)
 
-    action = input('you should have an account to enter:'
-                   '\n  1. I have an account.    2. I am new to reminder   3. exit reminder \n\n'
+    action = input(f'{Fore.LIGHTYELLOW_EX}you should have an account to enter:'
+                   f'\n{Fore.BLUE}  1. I have an account. '
+                   f'   {Fore.MAGENTA}2. I am new to reminder'
+                   f'   {Fore.GREEN}3. exit reminder \n\n{Fore.RESET}'
                    'enter a number from menu above -->>>:')
 
     if action == '1':

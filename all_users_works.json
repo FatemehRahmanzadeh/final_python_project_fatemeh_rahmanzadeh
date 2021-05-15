@@ -87,6 +87,18 @@
             "link": "",
             "description": "",
             "notification": null
+        },
+        "car wash": {
+            "work_name": "car wash",
+            "work_datetime": "2021-05-15 14:00:00",
+            "category": "rutins",
+            "status": "in progress",
+            "importance": false,
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": "modern carwash",
+            "notification": "time to wash car"
         }
     },
     "ftm": {
@@ -94,8 +106,8 @@
             "work_name": "visit dentist",
             "work_datetime": "2021-05-15 00:06:00",
             "category": "appointments",
-            "status": "in progress",
-            "importance": false,
+            "status": "done",
+            "importance": true,
             "urgency": true,
             "location": "sara's home",
             "link": "",
@@ -104,7 +116,7 @@
         },
         "exercise": {
             "work_name": "exercise",
-            "work_datetime": "2021-05-15 00:00:00",
+            "work_datetime": "2021-05-15 17:00:00",
             "category": "fun",
             "status": "in progress",
             "importance": true,

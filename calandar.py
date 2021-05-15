@@ -1,8 +1,6 @@
 from datetime import datetime
-import calendar
+from colorama import Fore
 from tabulate import tabulate
-
-my_calendar = calendar.Calendar(6)
 
 
 def show_day_works(usr, day):
@@ -12,35 +10,45 @@ def show_day_works(usr, day):
     :param day: target day
     :return: a dictionary of works of this day
     """
+    try:
+        day_works = {'finished': [], 'in progress': []}
+        for wrk in usr.works:
+            if wrk.work_datetime.date() == datetime.strptime(day, '%Y-%m-%d'):
+                if wrk.status == 'done':
+                    day_works['finished'].append(wrk.work_name)
+                else:
+                    day_works['in progress'].append(wrk.work_name)
 
-    day_works = {'finished': [], 'in progress': []}
-    for wrk in usr.works:
-        if wrk.wrk_datetime.date() == datetime.strptime(day, '%Y-%m-%d'):
-            if wrk.status == 'done':
-                day_works['finished'].append(wrk.work_name)
-            else:
-                day_works['in progress'].append(wrk.work_name)
+        assert day_works
 
-    print(tabulate(day_works, day_works.keys(), tablefmt="presto"))
-    return {day: day_works}
+    except AssertionError:
+        print(f'{Fore.CYAN}no work found for you this day{Fore.RESET}')
+        return 0
+    return tabulate(day_works, day_works.keys(), tablefmt="presto")
 
 
-def show_week_works(usr, target_date, week):
+def show_week_works(usr, target_date):
     """
     this function is going to show works of user within a week
     :param usr: current user
     :param target_date: date to take part week
-    :param week: number of week of month
     :return: a dictionary of works of this wek
     """
+    week = datetime.strptime(target_date, '%Y-%m-%d').isocalendar()[1]
     week_works = {'finished': [], 'in progress': []}
-    for wrk in usr.works:
-        if wrk.work_datetime.month() == target_date.month() and target_date.isocalendar()[1] == week:
-            if wrk.status == 'done':
-                week_works['finished'].append(wrk.work_name)
-            else:
-                week_works['in progress'].append(wrk.work_name)
-    return {week: week_works}
+    try:
+        for wrk in usr.works:
+            if wrk.work_datetime.isocalendar()[1] == week:
+                if wrk.status == 'done':
+                    week_works['finished'].append(f"{wrk.work_name}:\n{wrk.work_datetime.date()}")
+                else:
+                    week_works['in progress'].append(f"{wrk.work_name}:\n{wrk.work_datetime.date()}")
+        assert week_works
+
+    except AssertionError:
+        print(f'{Fore.CYAN}no work found for you this week{Fore.RESET}')
+        return 0
+    return tabulate(week_works, week_works.keys(), tablefmt="presto")
 
 
 def show_month_works(usr, target_date):
@@ -50,15 +58,22 @@ def show_month_works(usr, target_date):
     :param target_date: date to take part month
     :return: a dictionary of works of this wek
     """
-    month_works = {'finished': [], 'in progress': []}
-    for wrk in usr.works:
-        if wrk.work_datetime.month() == target_date.month():
-            if wrk.status == 'done':
-                month_works['finished'].append(wrk.work_name)
-            else:
-                month_works['in progress'].append(wrk.work_name)
-    return {'month': month_works}
+    month = datetime.strptime(target_date, '%Y-%m-%d').month
+    try:
+        month_works = {'finished': [], 'in progress': []}
+        for wrk in usr.works:
+            if wrk.work_datetime.month == month:
+                if wrk.status == 'done':
+                    month_works['finished'].append(f"{wrk.work_name}:\n{wrk.work_datetime.date()}")
+                else:
+                    month_works['in progress'].append(f"{wrk.work_name}:\n{wrk.work_datetime.date()}")
+        assert month_works
 
+    except AssertionError:
+        print(f'{Fore.CYAN}no work found for you this month{Fore.RESET}')
+        return 0
+    return tabulate(month_works, month_works.keys(), tablefmt="presto")
 
-def show_calandar():
-    pass
+# t2 = datetime.strptime('2021-05-1 08:12:00', "%Y-%m-%d %H:%M:%S")
+# print(t2.month)
+# print(t2.isocalendar()[0])

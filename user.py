@@ -24,19 +24,6 @@ class User:
         self.works = []
         self.categories = {}
         self.events = {}
-        # self.notify_on()
-
-    # def notify_on(self):
-    #     """
-    #     this function enables notification for every tasks
-    #     if its time has come notify of work object will recall
-    #     """
-    #     if self.works:
-    #         for _ in self.works:
-    #             _.notify()
-    #         return f'{Fore.LIGHTMAGENTA_EX} task reminder alarm on{Fore.RESET}'
-    #     else:
-    #         return f'{Fore.RED} task list is empty...{Fore.RESET}'
 
     def categorize_works(self):
         """
@@ -111,7 +98,7 @@ class User:
 
     def __str__(self):
         return f'name: {self.name}\n last name: {self.last_name}\nusername: {self.username}\n' \
-               f'Email: {self.user_email}\n list of works: {self.works}'
+               f'Email: {self.user_email}'
 
     @classmethod
     def register(cls, user_data):

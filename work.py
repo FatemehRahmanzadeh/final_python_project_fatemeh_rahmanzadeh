@@ -84,30 +84,29 @@ class Work:
         this method shows notification based on self.priority of work
         :return:
         """
-        now = dt.now()
 
         def remind():
             """
             this function shows a pop-up using windows notification
             """
             ntftion.notify('reminder', f"{self.notification}:"
-                                       f"{self.work_name}"
-                                       f"{self.work_datetime.time()} ", app_icon='reminder.ico', timeout=10)
+                                       f"\n{self.work_name}"
+                                       f"\n{self.work_datetime.time()} ", app_icon='reminder.ico', timeout=10)
         if self.eisenhower_priority():
             priority, time_ntf = self.eisenhower_priority()
 
-            while now.day <= time_ntf.day:
+            while dt.now().day <= time_ntf.day:
                 if priority == 1:
                     remind()
-                    time.sleep(5*60)
+                    time.sleep(60*5)
 
-                elif priority == 2 and now.time() == self.work_datetime.time():
+                elif priority == 2 and dt.now().time() == self.work_datetime.time():
                     remind()
                     break
-                elif priority == 3 and now.time().hour == 18:
+                elif priority == 3 and dt.now().time().hour == 18:
                     remind()
                     self.postpone(1, 'day')
-                elif priority == 4 and now.weekday() == 6:
+                elif priority == 4 and dt.now().weekday() == 6:
                     remind()
                     self.postpone(1, 'week')
         else:
@@ -160,5 +159,6 @@ class Work:
         """
         return cls(*(work_dict.values()))
 
-# w = Work('test',"2021-05-14 01:31:00", 'tests')
+
+# w = Work('test',"2021-05-15 04:40:00", 'tests', importance=False)
 # w.notify()

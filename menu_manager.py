@@ -1,24 +1,21 @@
 import datetime
 import logging
+import re
+from os import path
 from colorama import Fore
-import calandar
 import user
 from work import Work
 import file_manager
 import threading
-import time
+import calandar as c
 
 reminder_logger = logging.getLogger(__name__)
 reminder_logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('file.log')
-std_handler = logging.StreamHandler()
+file_handler = logging.FileHandler('reminder_logger.log')
 file_handler.setLevel(logging.INFO)
-std_handler.setLevel(logging.INFO)
 log_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 file_handler.setFormatter(log_format)
-std_handler.setFormatter(log_format)
 reminder_logger.addHandler(file_handler)
-reminder_logger.addHandler(std_handler)
 
 
 def create_work(usr):
@@ -26,14 +23,39 @@ def create_work(usr):
     this method gets information from user and makes instance of
     Work by calling creat work of class Work
     """
+    work_names = [w.work_name for w in usr.works]
+    time_format = "%Y-%m-%d %H:%M:%S"
+    work_name = ''
+    work_datetime = 0
+    category = ''
 
-    work_name = input('title of work:')
-    work_datetime = input('Enter date and time as :(year-month-day hour:min:sec): ')
+    while True:
+        try:
+            work_name = input('title of work:')
+            assert work_name not in work_names
+            break
+        except AssertionError:
+            print(f'{Fore.LIGHTRED_EX} work_name already exist in work list{Fore.RESET} ')
+            continue
+    while True:
+        try:
+            work_datetime = input('Enter date and time as :(year-month-day hour:min:sec): ')
+            assert not re.match(time_format, work_datetime)
+            break
+        except AssertionError:
+            print(f'{Fore.LIGHTRED_EX} wrong date or time format...{Fore.RESET}')
+            continue
+
     importance = input('is this work important? 1. Yes  2. No  ')
-    importance = True if importance == '1' else False
     urgency = input('is this work urgent? 1. Yes  2. No  ')
+    importance = True if importance == '1' else False
     urgency = True if urgency == '1' else False
-    category = input('choose a category for your work: ')
+    try:
+        category = input('choose a category for your work: ')
+        assert category in usr.categories.keys()
+    except AssertionError:
+        reminder_logger.info('new category adds to works list')
+        pass
     location = input('location of work (optional): ')
     link = input('add a link related to your work (optional): ')
     description = input('enter a description for your work (optional): ')
@@ -54,7 +76,7 @@ def create_work(usr):
     new_work = Work.create_work(work_dict)
     usr.works.append(new_work)
     print(file_manager.write_to_file('all_users_works.json', work_dict, usr.username, work_dict['work_name']))
-    reminder_logger.info(f"{usr.username} created {new_work.work_name} successfully", exc_info=True)
+    reminder_logger.info(f"'{usr.username}' created '{new_work.work_name}' work successfully", exc_info=True)
     return f'"{Fore.LIGHTGREEN_EX}{new_work.work_name}" were added to your to do list{Fore.RESET}'
 
 
@@ -80,16 +102,22 @@ def postpone_work(usr, wrk):
 
             new_datetime = wrk.postpone(1, options[p])
             new_dt_file = new_datetime.strftime("%Y-%m-%d %H:%M:%S")
-
-            update_work = file_manager.read_from_file('all_users_works.json', usr.username)
+            update_work = {}
+            try:
+                assert not path.isfile('all_users_works.json')
+                update_work = file_manager.read_from_file('all_users_works.json', usr.username)
+            except AssertionError:
+                print('file not found')
             update_work[wrk.work_name]['work_datetime'] = new_dt_file
             print(file_manager.write_to_file('all_users_works.json', update_work, usr.username))
+            reminder_logger.info(f'"{usr.username}" postponed "{wrk.work_name}"', exc_info=True)
 
             return f'{Fore.GREEN}{wrk.work_name} has been postponed to {new_datetime}{Fore.RESET}'
         except ValueError:
             print(f'{Fore.LIGHTRED_EX} invalid input try again..{Fore.RESET}')
         except IOError:
             print(f'{Fore.LIGHTRED_EX}file read and write error{Fore.RESET}')
+            logging.error('error in reading or writing "all_users_works.json"')
 
 
 def notify_on(usr):
@@ -103,8 +131,7 @@ def notify_on(usr):
         for _ in usr.works:
             _.work_refresh()
             if _.work_datetime.day == now.day:
-                th = threading.Thread(_.notify)
-                th.setDaemon(True) if not _.urgency else th.setDaemon(False)
+                th = threading.Thread(target=_.notify)
                 th.start()
                 threads.append(th)
 
@@ -153,6 +180,7 @@ def change_status(usr, wrk):
                 status_ch = all_usr_wrk[wrk.work_name]
                 status_ch['status'] = new_status
                 print(file_manager.write_to_file('all_users_works.json', status_ch, usr.username, wrk.work_name))
+                reminder_logger.info(f'"{usr.username}" finished "{wrk.work_name}"', exc_info=True)
                 break
 
             elif change_sts == 2:
@@ -265,16 +293,16 @@ def multi_threads(function_1, function_2, args1, args2):
     switches between threads
     """
     th1 = threading.Thread(target=function_1, args=(args1,))
-    th2 = threading.Thread(target=function_2, args=(args2,), daemon=True)
+    th2 = threading.Thread(target=function_2, args=(args2,))
     try:
-        th1.start()
-        th1.join()
         th2.start()
-        th2.join()
+        th1.start()
+        th2.join(1)
+        th1.join()
     except threading.ThreadError:
         print(f'{Fore.RED} Error in running thread{Fore.RESET}')
-        reminder_logger.error("Error running threads")
-        pass
+        logging.error("Error running threads")
+        return 0
     if not th1.is_alive():
         return 0
 
@@ -295,7 +323,7 @@ def user_menu(usr):
                          '\n 3. go to work directory'
                          '\n 4. check events'
                          '\n 5. categorize works'
-                         '\n 6. go to calendar'
+                         '\n 6. go to timespan work view'
                          '\n 7. log out', Fore.RESET)
         try:
             act = int(input(f'{Fore.GREEN}\nplease choose a task from menu above:{Fore.RESET}'))
@@ -335,21 +363,10 @@ def user_menu(usr):
         elif act == 5:
             work_categories_menu(usr)
         elif act == 6:
-            print(Fore.LIGHTGREEN_EX, f'{usr.username} > main menu > calendar', Fore.RESET)
-            # calandar_menu(usr)
+            print(Fore.LIGHTGREEN_EX, f'{usr.username} > main menu > timespan view', Fore.RESET)
+            date_view(usr)
         else:
             break
-
-
-def calendar_menu(current_user):
-    """
-    this function is for showing works in calendar
-    :param current_user: logged in user
-    :return:
-    """
-    select = 0
-    while select != 4:
-        calandar.show_calandar()
 
 
 def work_menu(logged_in_user, wrk):
@@ -473,7 +490,7 @@ def work_categories_menu(logged_in_user):
     all_categories = logged_in_user.categorize_works()
 
     while True:
-        print('\n', '-.' * 30, 'list of categories:', '-.' * 30)
+        print(Fore.BLUE,'\n', '-.' * 30, 'list of categories:', '-.' * 30, Fore.RESET)
 
         cat_select_dict = {_ + 1: cat for _, cat in enumerate(all_categories.keys())}
         cat_select_dict[0] = 'back to main menu'
@@ -487,7 +504,7 @@ def work_categories_menu(logged_in_user):
             work_dict = {i + 1: w for i, w in enumerate(all_categories[selected_cat])}
             work_dict[0] = 'back to categories'
             while True:
-                print('\n', '×' * 50, f'list of works in {selected_cat}:', '×' * 50)
+                print(Fore.BLUE, '\n', '×' * 50, f'list of works in {selected_cat}:', '×' * 50, Fore.RESET)
 
                 for num, work in work_dict.items():
                     if num != 0:
@@ -502,3 +519,46 @@ def work_categories_menu(logged_in_user):
                     break
         else:
             break
+
+
+def date_view(usr):
+    """
+    this method shows works in specific month, week or day that user selects
+    :param usr:
+    :return: a table of works name and dates if found
+    """
+    timespan = 0
+    date_str = ""
+    while True:
+        try:
+            date_str = input('enter a date to continue:')
+            assert re.match("(\d+)[-.\/](\d+)[-.\/](\d+)", date_str)
+        except AssertionError:
+            print(' enter date in format year-month-day')
+
+
+        print(f'{Fore.GREEN}select a timespan:{Fore.RESET}'
+              f'{Fore.CYAN}\n1. month {Fore.RESET}'
+              f'{Fore.MAGENTA}   2. week {Fore.RESET}'
+              f'{Fore.LIGHTGREEN_EX}   3. day{Fore.RESET}'
+              f'{Fore.BLUE}   4. back{Fore.RESET}')
+        try:
+            timespan = int(input(f'{Fore.LIGHTWHITE_EX} enter your number here: {Fore.RESET}'))
+            assert 1 <= timespan < 4
+        except AssertionError:
+            print(f'{Fore.LIGHTRED_EX} invalid input enter number between 1 to 4{Fore.RESET}')
+
+
+        choice = {1: lambda u, d: c.show_month_works(u, d),
+                  2: lambda u, d: c.show_week_works(u, d),
+                  3: lambda u, d: c.show_day_works(u, d)}
+        if timespan == 4:
+            break
+        else:
+            try:
+                assert print(Fore.BLUE, choice[timespan](usr, date_str), Fore.RESET)
+            except AssertionError:
+                print('something went wrong in calandar module')
+
+# t = datetime.datetime.strptime('2021-12-09', "%Y-%m-%d" )
+# print(re.match("(\d+)[-.\/](\d+)[-.\/](\d+)", '2021-12-09'))
