@@ -236,12 +236,18 @@ def check_events(logged_in_user):
     :param logged_in_user: current user in reminder
     :return: a massage about user decision
     """
-    all_events = file_manager.read_from_file('events.json')[logged_in_user.username]
-
+    all_events = {}
     while True:
-        if not all_events:
-            print(f'{Fore.GREEN}no new event...{Fore.RESET}')
-            back = input('enter "b" to back')
+        try:
+            all_events = file_manager.read_from_file('events.json')[logged_in_user.username]
+            assert all_events
+        except KeyError:
+            print(f'{Fore.GREEN}You have no events...{Fore.RESET}')
+
+        except AssertionError:
+            print(f'{Fore.BLUE}no new event...{Fore.RESET}')
+        if KeyError or AssertionError:
+            back = input(f'{Fore.GREEN}enter "b" to back{Fore.RESET}')
             if back:
                 break
         else:
@@ -428,6 +434,7 @@ def edit_work_menu(usr, wrk):
     items = []
     attributes_dict = {}
     attribute_lst = list(wrk.__dict__.keys())
+    attribute_lst.pop(attribute_lst.index('priority'))
 
     count = 0
     R = Fore.RESET
@@ -441,10 +448,18 @@ def edit_work_menu(usr, wrk):
         count += 1
 
     new_values = {}
-    try:
-        items = list(map(lambda x: int(x), input('id of items fo editing:(split items with comma)').split(',')))
-    except:
-        print(f'{Fore.RED} invalid input... just 1 - 10 are allowed.{Fore.RESET}')
+    while True:
+        try:
+            items = list(map(lambda x: int(x), input('id of items fo editing:'
+                                                     '(split items with comma): ').strip().split(',')))
+            for itm in items:
+                assert 1 < itm < 10
+            assert len(items) <= 10
+            break
+        except AssertionError:
+            print(f"{Fore.RED} invalid input... just 1 - 10 are allowed."
+                  f" you don't have more than 10 option{Fore.RESET}")
+            continue
 
     edit_items = [attributes_dict[num] for num in items]
     old_values = {_: wrk.__dict__[_] for _ in edit_items}
@@ -457,7 +472,7 @@ def edit_work_menu(usr, wrk):
         if cnt % 2 == 0:
             C = Fore.BLUE
         else:
-            C = Fore.MAGENTA
+            C = Fore.LIGHTMAGENTA_EX
 
         if itm == 'importance' or itm == 'urgency':
             new_val = bool(int(input(f'{C} is {wrk.work_name} {itm}?,'
@@ -475,9 +490,9 @@ def edit_work_menu(usr, wrk):
         new_work_name = edit_work_file['work_name']
         work_dict[new_work_name] = edit_work_file
         work_dict.pop(wrk.work_name)
-
     file_manager.write_to_file('all_users_works.json', work_dict, usr.username)
     wrk.edit_work(new_values)
+    reminder_logger.info(f'{usr.username} edited {wrk.work_name}:\n{out_str}')
     return out_str
 
 
@@ -536,7 +551,6 @@ def date_view(usr):
         except AssertionError:
             print(' enter date in format year-month-day')
 
-
         print(f'{Fore.GREEN}select a timespan:{Fore.RESET}'
               f'{Fore.CYAN}\n1. month {Fore.RESET}'
               f'{Fore.MAGENTA}   2. week {Fore.RESET}'
@@ -544,10 +558,9 @@ def date_view(usr):
               f'{Fore.BLUE}   4. back{Fore.RESET}')
         try:
             timespan = int(input(f'{Fore.LIGHTWHITE_EX} enter your number here: {Fore.RESET}'))
-            assert 1 <= timespan < 4
+            assert 1 <= timespan <= 4
         except AssertionError:
             print(f'{Fore.LIGHTRED_EX} invalid input enter number between 1 to 4{Fore.RESET}')
-
 
         choice = {1: lambda u, d: c.show_month_works(u, d),
                   2: lambda u, d: c.show_week_works(u, d),
