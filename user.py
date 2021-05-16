@@ -25,6 +25,15 @@ class User:
         self.categories = {}
         self.events = {}
 
+    # def notify(self):
+    #     """
+    #     this method determines which work's alarm time is now
+    #     """
+    #     while True:
+    #         for work in self.works:
+    #             work.eisenhower_priority()
+    #             if work.priority == 1work.time_ntf
+
     def categorize_works(self):
         """
         this method takes works from self.works attribute and categorise them

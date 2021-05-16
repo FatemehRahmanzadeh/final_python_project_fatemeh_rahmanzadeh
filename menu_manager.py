@@ -9,6 +9,7 @@ import file_manager
 import threading
 import calandar as c
 
+
 reminder_logger = logging.getLogger(__name__)
 reminder_logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler('reminder_logger.log')
@@ -125,6 +126,7 @@ def notify_on(usr):
     this function enables notification for every tasks
     if its time has come notify of work object will recall
     """
+    # my_sched = sched.scheduler(datetime.datetime, time.sleep)
     now = datetime.datetime.now()
     threads = []
     if usr.works:
@@ -135,10 +137,8 @@ def notify_on(usr):
                 th.start()
                 threads.append(th)
 
-    for notify in threads:
-        notify.join()
-
-        return f'{Fore.LIGHTMAGENTA_EX} task reminder alarm on{Fore.RESET}'
+        for notify in threads:
+            notify.join()
     else:
         return f'{Fore.RED} task list is empty...{Fore.RESET}'
 
@@ -243,11 +243,13 @@ def check_events(logged_in_user):
             assert all_events
         except KeyError:
             print(f'{Fore.GREEN}You have no events...{Fore.RESET}')
+            reminder_logger.info(f'"{logged_in_user.username}" has no message so far')
 
         except AssertionError:
             print(f'{Fore.BLUE}no new event...{Fore.RESET}')
         if KeyError or AssertionError:
             back = input(f'{Fore.GREEN}enter "b" to back{Fore.RESET}')
+            reminder_logger.info(f'"{logged_in_user}" has no new event this time')
             if back:
                 break
         else:
@@ -303,7 +305,7 @@ def multi_threads(function_1, function_2, args1, args2):
     try:
         th2.start()
         th1.start()
-        th2.join(1)
+        th2.join()
         th1.join()
     except threading.ThreadError:
         print(f'{Fore.RED} Error in running thread{Fore.RESET}')
@@ -435,6 +437,7 @@ def edit_work_menu(usr, wrk):
     attributes_dict = {}
     attribute_lst = list(wrk.__dict__.keys())
     attribute_lst.pop(attribute_lst.index('priority'))
+    attribute_lst.pop(attribute_lst.index('time_ntf'))
 
     count = 0
     R = Fore.RESET

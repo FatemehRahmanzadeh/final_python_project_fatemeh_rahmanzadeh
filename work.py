@@ -29,6 +29,7 @@ class Work:
         self.status = status
         self.notification = notification
         self.priority = 0
+        self.time_ntf = 0
 
     def postpone(self, dlt_time, ky_word):
         """
@@ -61,10 +62,12 @@ class Work:
         if self.status != 'done':
             if self.importance and self.urgency:
                 self.priority = 1
-                return self.work_datetime
+                self.time_ntf = self.work_datetime
+                return self.time_ntf
             elif not self.importance and self.urgency:
                 self.priority = 2
-                return self.work_datetime
+                self.time_ntf = self.work_datetime
+                return self.time_ntf
 
             elif self.importance and not self.urgency:
                 self.priority = 3
@@ -72,14 +75,14 @@ class Work:
                     hours = (9 - self.work_datetime.hour)
                 else:
                     hours = 0
-                time_ntf = self.postpone(hours, 'hour')
-                return time_ntf
+                self.time_ntf = self.postpone(hours, 'hour')
+                return self.time_ntf
 
             elif not self.importance and not self.urgency:
                 self.priority = 4
                 dys = (6 - self.work_datetime.weekday())
-                time_ntf = self.postpone(dys, 'day')
-                return time_ntf
+                self.time_ntf = self.postpone(dys, 'day')
+                return self.time_ntf
         else:
             return 0
 
@@ -94,11 +97,11 @@ class Work:
             this function shows a pop-up using windows notification
             """
             ntftion.notify('reminder', f"{self.notification}:\n{self.work_name}\n{self.work_datetime.hour}: "
-                                       f"{self.work_datetime.minute} ", app_icon='reminder.ico', timeout=10)
-        self.eisenhower_priority()
-        if self.priority:
-            time_ntf = self.eisenhower_priority()
+                                       f"{self.work_datetime.minute} ", app_icon='reminder.ico', timeout=3)
 
+        time_ntf = self.eisenhower_priority()
+
+        if self.priority:
             while dt.now().day <= time_ntf.day:
                 if self.priority == 1 and (dt.now().hour >= time_ntf.hour
                                            and dt.now().minute >= time_ntf.minute):
@@ -111,10 +114,10 @@ class Work:
                     break
                 elif self.priority == 3 and dt.now().time().hour == 18:
                     remind()
-                    schedule.every().day.at("18:00").do(remind)
+                    schedule.every(1).days.at("18:00").do(remind)
                 elif self.priority == 4 and dt.now().weekday() == 6:
                     remind()
-                    schedule.every().week.do(remind)
+                    schedule.every(1).weeks.do(remind)
                 while True:
                     schedule.run_pending()
         else:
