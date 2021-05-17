@@ -1,3 +1,5 @@
+import datetime
+
 import file_manager
 from work import Work
 from hashlib import md5
@@ -29,10 +31,13 @@ class User:
     #     """
     #     this method determines which work's alarm time is now
     #     """
-    #     while True:
-    #         for work in self.works:
-    #             work.eisenhower_priority()
-    #             if work.priority == 1work.time_ntf
+    #     # while True:
+    #     #     now = datetime.datetime.now()
+    #     #     for work in self.works:
+    #     #         work.eisenhower_priority()
+    #     #         if work.time_ntf.day == now.day:
+    #     #             if now.hour == work.time_ntf.hour and now.minute == work.time_ntf.minute:
+    #     #                 return work.notify
 
     def categorize_works(self):
         """
@@ -50,7 +55,7 @@ class User:
 
     def delete_work(self, work_name):
         """
-        this method remove a work from work list of user and from akk_users_works.jason
+        this method remove a work from work list of user and from akk_users_works.json
         :param work_name: name of work which user is going to delete
         :return: a massage about successful delete of fail.
         """
@@ -166,7 +171,6 @@ class User:
         else:
             print(f'No user named {username}...')
             return False
-
 
 # if __name__ == "__main__":
 #     pass

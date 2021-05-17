@@ -126,7 +126,6 @@ def notify_on(usr):
     this function enables notification for every tasks
     if its time has come notify of work object will recall
     """
-    # my_sched = sched.scheduler(datetime.datetime, time.sleep)
     now = datetime.datetime.now()
     threads = []
     if usr.works:
@@ -296,7 +295,7 @@ def check_events(logged_in_user):
                 break
 
 
-def multi_threads(function_1, function_2, args1, args2):
+def multi_threads(function_1, function_2, args1=None, args2=None):
     """
     switches between threads
     """
@@ -482,6 +481,7 @@ def edit_work_menu(usr, wrk):
                                      f' current {itm} is {old_values[itm]} (1. yes 0. No){R}')))
             edit_work_file[itm] = new_val
             new_values[itm] = new_val
+
         else:
             new_val = input(f'{C}new values of {itm}, current {itm} is {old_values[itm]}{R}')
             edit_work_file[itm] = new_val
@@ -493,6 +493,8 @@ def edit_work_menu(usr, wrk):
         new_work_name = edit_work_file['work_name']
         work_dict[new_work_name] = edit_work_file
         work_dict.pop(wrk.work_name)
+    if 'work_datetime' in new_values.keys():
+        new_values['work_datetime'] = datetime.datetime.strptime(new_values['work_datetime'], "%Y-%m-%d %H:%M:%S")
     file_manager.write_to_file('all_users_works.json', work_dict, usr.username)
     wrk.edit_work(new_values)
     reminder_logger.info(f'{usr.username} edited {wrk.work_name}:\n{out_str}')
@@ -576,5 +578,3 @@ def date_view(usr):
             except AssertionError:
                 print('something went wrong in calandar module')
 
-# t = datetime.datetime.strptime('2021-12-09', "%Y-%m-%d" )
-# print(re.match("(\d+)[-.\/](\d+)[-.\/](\d+)", '2021-12-09'))

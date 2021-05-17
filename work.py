@@ -1,5 +1,10 @@
-import schedule
+# import time
+#
+# import schedule
+import time
 from datetime import datetime as dt, timedelta as tdelta
+
+import schedule
 from plyer import notification as ntftion
 
 
@@ -29,7 +34,7 @@ class Work:
         self.status = status
         self.notification = notification
         self.priority = 0
-        self.time_ntf = 0
+        self.time_ntf = self.work_datetime
 
     def postpone(self, dlt_time, ky_word):
         """
@@ -72,7 +77,7 @@ class Work:
             elif self.importance and not self.urgency:
                 self.priority = 3
                 if self.work_datetime.hour < 18:
-                    hours = (9 - self.work_datetime.hour)
+                    hours = (18 - self.work_datetime.hour)
                 else:
                     hours = 0
                 self.time_ntf = self.postpone(hours, 'hour')
@@ -99,27 +104,34 @@ class Work:
             ntftion.notify('reminder', f"{self.notification}:\n{self.work_name}\n{self.work_datetime.hour}: "
                                        f"{self.work_datetime.minute} ", app_icon='reminder.ico', timeout=3)
 
-        time_ntf = self.eisenhower_priority()
+        self.eisenhower_priority()
 
         if self.priority:
-            while dt.now().day <= time_ntf.day:
-                if self.priority == 1 and (dt.now().hour >= time_ntf.hour
-                                           and dt.now().minute >= time_ntf.minute):
+            while dt.now().day <= self.time_ntf.day:
+                if self.priority == 1 and (dt.now().hour >= self.time_ntf.hour
+                                           and dt.now().minute >= self.time_ntf.minute):
                     remind()
-                    schedule.every(5).minutes.do(remind)
+                    schedule.every(50).seconds.do(remind)
+                    while True:
+                        schedule.run_pending()
+                        time.sleep(10)
+                elif (self.priority == 2) and ((dt.now().hour == self.time_ntf.hour)
+                                               and (dt.now().time().minute == self.time_ntf.time().minute)):
+                    remind()
 
-                elif (self.priority == 2) and ((dt.now().hour == time_ntf.time().hour)
-                                               and (dt.now().time().minute == time_ntf.time().minute)):
-                    remind()
                     break
                 elif self.priority == 3 and dt.now().time().hour == 18:
                     remind()
-                    schedule.every(1).days.at("18:00").do(remind)
+                    schedule.every(1).days.do(remind)
+                    while True:
+                        schedule.run_pending()
+                        time.sleep(10)
                 elif self.priority == 4 and dt.now().weekday() == 6:
                     remind()
                     schedule.every(1).weeks.do(remind)
-                while True:
-                    schedule.run_pending()
+                    while True:
+                        schedule.run_pending()
+                        time.sleep(10)
         else:
             pass
 

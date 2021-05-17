@@ -24,7 +24,7 @@ def login():
         else:
             menu_manager.reminder_logger.info(f"{current_user} logged in")
             out = menu_manager.multi_threads(menu_manager.user_menu, menu_manager.notify_on,
-                                             current_user, current_user)
+                                             args1=current_user, args2=current_user)
             if not out:
                 break
         if tries >= 3:
