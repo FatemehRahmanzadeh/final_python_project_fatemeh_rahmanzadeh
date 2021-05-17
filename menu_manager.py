@@ -137,7 +137,8 @@ def notify_on(usr):
                 threads.append(th)
 
         for notify in threads:
-            notify.join()
+            notify.join(2)
+
     else:
         return f'{Fore.RED} task list is empty...{Fore.RESET}'
 

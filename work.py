@@ -1,10 +1,5 @@
-# import time
-#
-# import schedule
 import time
 from datetime import datetime as dt, timedelta as tdelta
-
-import schedule
 from plyer import notification as ntftion
 
 
@@ -108,30 +103,22 @@ class Work:
 
         if self.priority:
             while dt.now().day <= self.time_ntf.day:
-                if self.priority == 1 and (dt.now().hour >= self.time_ntf.hour
-                                           and dt.now().minute >= self.time_ntf.minute):
+                if self.priority == 1 and dt.now().time() >= self.time_ntf.time():
                     remind()
-                    schedule.every(50).seconds.do(remind)
-                    while True:
-                        schedule.run_pending()
-                        time.sleep(10)
+                    time.sleep(20)
+
                 elif (self.priority == 2) and ((dt.now().hour == self.time_ntf.hour)
                                                and (dt.now().time().minute == self.time_ntf.time().minute)):
                     remind()
-
                     break
                 elif self.priority == 3 and dt.now().time().hour == 18:
                     remind()
-                    schedule.every(1).days.do(remind)
-                    while True:
-                        schedule.run_pending()
-                        time.sleep(10)
+                    time.sleep(24*3600)
                 elif self.priority == 4 and dt.now().weekday() == 6:
                     remind()
-                    schedule.every(1).weeks.do(remind)
-                    while True:
-                        schedule.run_pending()
-                        time.sleep(10)
+                    time.sleep(7*24*3600)
+
+
         else:
             pass
 
@@ -183,6 +170,3 @@ class Work:
         :return: an instance of Work class
         """
         return cls(*(work_dict.values()))
-
-# w = Work('test',"2021-05-15 04:40:00", 'tests', importance=False)
-# w.notify()
