@@ -47,6 +47,7 @@ class Work:
             self.work_datetime = self.work_datetime + tdelta(weeks=dlt_time)
         elif ky_word == 'month':
             self.work_datetime = self.work_datetime + tdelta(days=dlt_time * 30)
+        self.eisenhower_priority()
         return self.work_datetime
 
     def eisenhower_priority(self):
@@ -75,13 +76,13 @@ class Work:
                     hours = (18 - self.work_datetime.hour)
                 else:
                     hours = 0
-                self.time_ntf = self.postpone(hours, 'hour')
+                self.time_ntf = self.work_datetime + tdelta(seconds=hours*3600)
                 return self.time_ntf
 
             elif not self.importance and not self.urgency:
                 self.priority = 4
                 dys = (6 - self.work_datetime.weekday())
-                self.time_ntf = self.postpone(dys, 'day')
+                self.time_ntf = self.work_datetime + tdelta(days=dys)
                 return self.time_ntf
         else:
             return 0
@@ -98,11 +99,15 @@ class Work:
             """
             ntftion.notify('reminder', f"{self.notification}:\n{self.work_name}\n{self.work_datetime.hour}: "
                                        f"{self.work_datetime.minute} ", app_icon='reminder.ico', timeout=3)
+        # if self.status != "done":
+        #     remind()
+        #     return 1
+        # else:
+        #     return 0
 
         self.eisenhower_priority()
-
         if self.priority:
-            while dt.now().day <= self.time_ntf.day:
+            while dt.now().day <= self.time_ntf.day and self.status != "done":
                 if self.priority == 1 and dt.now().time() >= self.time_ntf.time():
                     remind()
                     time.sleep(20)
@@ -117,8 +122,6 @@ class Work:
                 elif self.priority == 4 and dt.now().weekday() == 6:
                     remind()
                     time.sleep(7*24*3600)
-
-
         else:
             pass
 
@@ -131,6 +134,7 @@ class Work:
         for attr, new_val in new_values.items():
             self.__dict__[attr] = new_val
         self.work_refresh()
+        self.eisenhower_priority()
         return self.__dict__
 
     def change_status(self):
@@ -143,7 +147,8 @@ class Work:
             return self.status
         elif self.status == 'done':
             self.status = 'in progress'
-            return self.status
+        self.eisenhower_priority()
+        return self.status
 
     def work_refresh(self):
         """
@@ -152,8 +157,9 @@ class Work:
         now = dt.now()
         self.eisenhower_priority()
         p_week = now.isocalendar()[1] - self.work_datetime.isocalendar()[1]
+
         if (1 <= p_week) and (self.priority not in [1, 2]):
-            self.work_datetime = now
+            self.time_ntf = now
         else:
             pass
 

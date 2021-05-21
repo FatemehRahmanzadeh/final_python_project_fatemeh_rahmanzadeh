@@ -34,8 +34,8 @@ def write_to_file(file_name, data, key1, key2=None):
     for val in data.values():
         if isinstance(val, datetime):
             data['work_datetime'] = f"{val.date()} {val.time()}"
-
-    if path.isfile(file_name):
+    try:
+        assert path.isfile(file_name)
         with open(file_name, 'r') as file:
             data_from_file = json.load(file)
 
@@ -54,7 +54,8 @@ def write_to_file(file_name, data, key1, key2=None):
         with open(file_name, 'w') as file:
             json.dump(data_from_file, file, indent=4, ensure_ascii=False)
         return f'data has been written into {file_name} successfully'
-    else:
+    except AssertionError:
+        print('file does not exist. creating new file.')
         new_data = {}
         if key1 and key2:
             new_data = {key1:{key2: data}}

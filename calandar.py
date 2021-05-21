@@ -3,17 +3,17 @@ from colorama import Fore
 from tabulate import tabulate
 
 
-def show_day_works(usr, day):
+def show_day_works(usr, target_date):
     """
     this function is going to show works of user within a day
     :param usr: current user
-    :param day: target day
+    :param target_date: target day
     :return: a dictionary of works of this day
     """
     try:
         day_works = {'finished': [], 'in progress': []}
         for wrk in usr.works:
-            if wrk.work_datetime.date() == datetime.strptime(day, '%Y-%m-%d'):
+            if wrk.work_datetime.date() == target_date.date():
                 if wrk.status == 'done':
                     day_works['finished'].append(wrk.work_name)
                 else:
@@ -34,7 +34,7 @@ def show_week_works(usr, target_date):
     :param target_date: date to take part week
     :return: a dictionary of works of this wek
     """
-    week = datetime.strptime(target_date, '%Y-%m-%d').isocalendar()[1]
+    week = target_date.isocalendar()[1]
     week_works = {'finished': [], 'in progress': []}
     try:
         for wrk in usr.works:
@@ -58,7 +58,7 @@ def show_month_works(usr, target_date):
     :param target_date: date to take part month
     :return: a dictionary of works of this wek
     """
-    month = datetime.strptime(target_date, '%Y-%m-%d').month
+    month = target_date.month
     try:
         month_works = {'finished': [], 'in progress': []}
         for wrk in usr.works:

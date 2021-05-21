@@ -59,20 +59,23 @@ def creat_account():
 
 
 while True:
-    print(Fore.LIGHTCYAN_EX, '\n', '>' * 20, 'welcome to reminder', '<' * 20, '\n', Fore.RESET)
+    try:
+        print(Fore.LIGHTCYAN_EX, '\n', '>' * 20, 'welcome to reminder', '<' * 20, '\n', Fore.RESET)
 
-    action = input(f'{Fore.LIGHTYELLOW_EX}you should have an account to enter:'
-                   f'\n{Fore.BLUE}  1. I have an account. '
-                   f'   {Fore.MAGENTA}2. I am new to reminder'
-                   f'   {Fore.GREEN}3. exit reminder \n\n{Fore.RESET}'
-                   'enter a number from menu above -->>>:')
+        action = input(f'{Fore.LIGHTYELLOW_EX}you should have an account to enter:'
+                       f'\n{Fore.BLUE}  1. I have an account. '
+                       f'   {Fore.MAGENTA}2. I am new to reminder'
+                       f'   {Fore.GREEN}3. exit reminder \n\n{Fore.RESET}'
+                       'enter a number from menu above -->>>:')
 
-    if action == '1':
-        login()
+        if action == '1':
+            login()
 
-    elif action == '2':
-        creat_account()
-    elif action == '3':
-        break
-    else:
+        elif action == '2':
+            creat_account()
+        elif action == '3':
+            break
+        else:
+            ValueError(action)
+    except ValueError:
         print('invalid choice please try again')

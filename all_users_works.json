@@ -104,39 +104,75 @@
     "ftm": {
         "visit dentist": {
             "work_name": "visit dentist",
-            "work_datetime": "2021-05-18 01:40:00",
+            "work_datetime": "2021-05-21 07:14:00",
             "category": "appointments",
             "status": "in progress",
-            "importance": true,
+            "importance": false,
             "urgency": true,
             "location": "clinic",
             "link": "",
             "description": "",
             "notification": "time to visit doctor"
         },
-        "exercise": {
-            "work_name": "exercise",
-            "work_datetime": "2021-05-18 01:16:00",
-            "category": "fun",
+        "study english": {
+            "work_name": "study english",
+            "work_datetime": "2021-05-21 12:30:00",
+            "category": "education",
             "status": "in progress",
             "importance": true,
             "urgency": true,
-            "location": "",
+            "location": "home",
+            "link": "",
+            "description": "listening and writing",
+            "notification": "time to improve your english skill"
+        },
+        "finish homework": {
+            "work_name": "finish homework",
+            "work_datetime": "2021-05-22 03:30:00",
+            "category": "educational",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "home",
             "link": "",
             "description": "",
-            "notification": "burn some fat"
+            "notification": "finish your homework in time"
         },
-        "math exam": {
-            "work_name": "math exam",
-            "work_datetime": "2021-05-18 01:36:00",
-            "category": "exams",
+        "shopping": {
+            "work_name": "shopping",
+            "work_datetime": "2021-05-22 16:30:00",
+            "category": "chores",
             "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "supermarket",
+            "link": "shahrvand.ir",
+            "description": "daily works",
+            "notification": "time to go shopping"
+        },
+        "send deadline massage": {
+            "work_name": "send deadline massage",
+            "work_datetime": "2021-05-22 02:10:00",
+            "category": "students task",
+            "status": "done",
             "importance": true,
             "urgency": true,
             "location": "",
             "link": "",
             "description": "",
             "notification": ""
+        },
+        "ticket check": {
+            "work_name": "ticket check",
+            "work_datetime": "2021-05-22 03:00:00",
+            "category": "trip tasks",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "raja.ir",
+            "description": "to Tehran",
+            "notification": "check for tickets"
         }
     }
 }

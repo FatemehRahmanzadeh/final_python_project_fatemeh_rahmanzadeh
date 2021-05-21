@@ -9,6 +9,7 @@ import file_manager
 import threading
 import calandar as c
 
+threads = []
 
 reminder_logger = logging.getLogger(__name__)
 reminder_logger.setLevel(logging.INFO)
@@ -29,6 +30,8 @@ def create_work(usr):
     work_name = ''
     work_datetime = 0
     category = ''
+    importance = True
+    urgency = True
 
     while True:
         try:
@@ -46,11 +49,19 @@ def create_work(usr):
         except AssertionError:
             print(f'{Fore.LIGHTRED_EX} wrong date or time format...{Fore.RESET}')
             continue
-
-    importance = input('is this work important? 1. Yes  2. No  ')
-    urgency = input('is this work urgent? 1. Yes  2. No  ')
-    importance = True if importance == '1' else False
-    urgency = True if urgency == '1' else False
+    while True:
+        try:
+            importance = input('is this work important? 1. Yes  2. No  ')
+            urgency = input('is this work urgent? 1. Yes  2. No  ')
+            if importance not in ['1', '2'] or urgency not in ['1', '2']:
+                ValueError(importance, urgency)
+            importance = True if importance == '1' else False
+            urgency = True if urgency == '1' else False
+            break
+        except ValueError:
+            print('invalid input... try again')
+            reminder_logger.error(f'invalid input of importance or urgency of create work for {usr.username}')
+            continue
     try:
         category = input('choose a category for your work: ')
         assert category in usr.categories.keys()
@@ -76,6 +87,10 @@ def create_work(usr):
     }
     new_work = Work.create_work(work_dict)
     usr.works.append(new_work)
+    new_thread = threading.Thread(name=new_work.work_name, target=new_work.notify, daemon=True)
+    threads.append(new_thread)
+    new_thread.start()
+
     print(file_manager.write_to_file('all_users_works.json', work_dict, usr.username, work_dict['work_name']))
     reminder_logger.info(f"'{usr.username}' created '{new_work.work_name}' work successfully", exc_info=True)
     return f'"{Fore.LIGHTGREEN_EX}{new_work.work_name}" were added to your to do list{Fore.RESET}'
@@ -105,7 +120,7 @@ def postpone_work(usr, wrk):
             new_dt_file = new_datetime.strftime("%Y-%m-%d %H:%M:%S")
             update_work = {}
             try:
-                assert not path.isfile('all_users_works.json')
+                assert path.isfile('all_users_works.json')
                 update_work = file_manager.read_from_file('all_users_works.json', usr.username)
             except AssertionError:
                 print('file not found')
@@ -125,14 +140,16 @@ def notify_on(usr):
     """
     this function enables notification for every tasks
     if its time has come notify of work object will recall
-    """
+    first looks for today's user's tasks. Then makes thread for each task.
+    start each thread after creation, finally join all of them in a thread list.
+"""
     now = datetime.datetime.now()
-    threads = []
     if usr.works:
         for _ in usr.works:
             _.work_refresh()
-            if _.work_datetime.day == now.day:
-                th = threading.Thread(target=_.notify)
+            if _.work_datetime.day == now.day and _.status != "done":
+                th = threading.Thread(name=_.work_name, target=_.notify, daemon=True)
+                # th = multiprocessing.Process(name=_.work_name, target=_.notify)
                 th.start()
                 threads.append(th)
 
@@ -151,6 +168,10 @@ def delete_work(logged_in_user, target_work):
     :return:
     """
     logged_in_user.delete_work(target_work.work_name)
+    for th in threads:
+        if th.name == target_work.work_name:
+            threads.remove(th)
+
     user_works_file = file_manager.read_from_file('all_users_works.json', logged_in_user.username)
 
     user_works_file.pop(target_work.work_name)
@@ -301,11 +322,11 @@ def multi_threads(function_1, function_2, args1=None, args2=None):
     switches between threads
     """
     th1 = threading.Thread(target=function_1, args=(args1,))
-    th2 = threading.Thread(target=function_2, args=(args2,))
+    th2 = threading.Thread(target=function_2, args=(args2,), daemon=True)
     try:
         th2.start()
         th1.start()
-        th2.join()
+        th2.join(2)
         th1.join()
     except threading.ThreadError:
         print(f'{Fore.RED} Error in running thread{Fore.RESET}')
@@ -336,7 +357,7 @@ def user_menu(usr):
         try:
             act = int(input(f'{Fore.GREEN}\nplease choose a task from menu above:{Fore.RESET}'))
             if act < 0 or act > 7:
-                raise ValueError
+                ValueError(act)
         except ValueError:
             print(Fore.RED, 'invalid input. Just 1-8 are allowed', Fore.RESET)
             continue
@@ -374,6 +395,7 @@ def user_menu(usr):
             print(Fore.LIGHTGREEN_EX, f'{usr.username} > main menu > timespan view', Fore.RESET)
             date_view(usr)
         else:
+            print(usr.log_out())
             break
 
 
@@ -389,7 +411,7 @@ def work_menu(logged_in_user, wrk):
     action = 0
     while action != 7:
 
-        print(Fore.MAGENTA, f'\n1. edit {wrk.work_name}'
+        print(Fore.MAGENTA, f'\n1. edit "{wrk.work_name}"'
                             f'\n2. postpone "{wrk.work_name}" to another time'
                             f'\n3. change status of "{wrk.work_name}". (in progress or done)'
                             f'\n4. delete "{wrk.work_name}"'
@@ -456,12 +478,16 @@ def edit_work_menu(usr, wrk):
             items = list(map(lambda x: int(x), input('id of items fo editing:'
                                                      '(split items with comma): ').strip().split(',')))
             for itm in items:
-                assert 1 < itm < 10
+                assert 1 <= itm <= 10
+                if not isinstance(itm, int):
+                    ValueError(itm)
             assert len(items) <= 10
             break
         except AssertionError:
             print(f"{Fore.RED} invalid input... just 1 - 10 are allowed."
                   f" you don't have more than 10 option{Fore.RESET}")
+        except ValueError:
+            print(f'{Fore.LIGHTRED_EX} invalid input. input must be integer')
             continue
 
     edit_items = [attributes_dict[num] for num in items]
@@ -469,6 +495,7 @@ def edit_work_menu(usr, wrk):
     out_str = ''
     work_dict = file_manager.read_from_file('all_users_works.json', usr.username)
     edit_work_file = work_dict[wrk.work_name]
+    new_val = None
     cnt = 0
     R = Fore.RESET
     for itm in edit_items:
@@ -483,6 +510,20 @@ def edit_work_menu(usr, wrk):
             edit_work_file[itm] = new_val
             new_values[itm] = new_val
 
+        elif itm == 'work_datetime':
+            while True:
+                try:
+                    new_val = input(f'{C}new values of {itm}, current {itm} is {old_values[itm]}{R}')
+                    if not re.match("%Y-%m-%d %H:%M:%S", new_val):
+                        ValueError(new_val)
+
+                        new_values[itm] = new_val
+                    new_values['work_datetime'] = datetime.datetime.strptime(new_values['work_datetime'],
+                                                                             "%Y-%m-%d %H:%M:%S")
+                    break
+                except ValueError:
+                    print(f'invalid datetime format. try this: year-month-day hour:minutes:second')
+                    continue
         else:
             new_val = input(f'{C}new values of {itm}, current {itm} is {old_values[itm]}{R}')
             edit_work_file[itm] = new_val
@@ -494,10 +535,14 @@ def edit_work_menu(usr, wrk):
         new_work_name = edit_work_file['work_name']
         work_dict[new_work_name] = edit_work_file
         work_dict.pop(wrk.work_name)
-    if 'work_datetime' in new_values.keys():
-        new_values['work_datetime'] = datetime.datetime.strptime(new_values['work_datetime'], "%Y-%m-%d %H:%M:%S")
+
     file_manager.write_to_file('all_users_works.json', work_dict, usr.username)
     wrk.edit_work(new_values)
+
+    for th in threads:
+        if th.name == wrk.work_name:
+            th.join(1)
+
     reminder_logger.info(f'{usr.username} edited {wrk.work_name}:\n{out_str}')
     return out_str
 
@@ -511,7 +556,7 @@ def work_categories_menu(logged_in_user):
     all_categories = logged_in_user.categorize_works()
 
     while True:
-        print(Fore.BLUE,'\n', '-.' * 30, 'list of categories:', '-.' * 30, Fore.RESET)
+        print(Fore.BLUE, '\n', '-.' * 30, 'list of categories:', '-.' * 30, Fore.RESET)
 
         cat_select_dict = {_ + 1: cat for _, cat in enumerate(all_categories.keys())}
         cat_select_dict[0] = 'back to main menu'
@@ -549,13 +594,10 @@ def date_view(usr):
     :return: a table of works name and dates if found
     """
     timespan = 0
-    date_str = ""
     while True:
-        try:
-            date_str = input('enter a date to continue:')
-            assert re.match("(\d+)[-.\/](\d+)[-.\/](\d+)", date_str)
-        except AssertionError:
-            print(' enter date in format year-month-day')
+
+        date = datetime.datetime.now()
+        print(Fore.LIGHTMAGENTA_EX, '\nyou can see current works here in selected timespan\n', Fore.RESET)
 
         print(f'{Fore.GREEN}select a timespan:{Fore.RESET}'
               f'{Fore.CYAN}\n1. month {Fore.RESET}'
@@ -567,6 +609,7 @@ def date_view(usr):
             assert 1 <= timespan <= 4
         except AssertionError:
             print(f'{Fore.LIGHTRED_EX} invalid input enter number between 1 to 4{Fore.RESET}')
+            reminder_logger.error(f'input error for {usr.username}')
 
         choice = {1: lambda u, d: c.show_month_works(u, d),
                   2: lambda u, d: c.show_week_works(u, d),
@@ -575,7 +618,7 @@ def date_view(usr):
             break
         else:
             try:
-                assert print(Fore.BLUE, choice[timespan](usr, date_str), Fore.RESET)
-            except AssertionError:
-                print('something went wrong in calandar module')
-
+                print("\n", Fore.BLUE, choice[timespan](usr, date), Fore.RESET, "\n")
+            except IOError:
+                print(Fore.LIGHTRED_EX, '\nsomething went wrong in calandar module', Fore.RESET)
+                reminder_logger.error(f'error in {usr.username} app, in calendar module..')

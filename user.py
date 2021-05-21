@@ -1,5 +1,4 @@
-import datetime
-
+from datetime import datetime as dt, timedelta as tdelta
 import file_manager
 from work import Work
 from hashlib import md5
@@ -31,13 +30,33 @@ class User:
     #     """
     #     this method determines which work's alarm time is now
     #     """
-    #     # while True:
-    #     #     now = datetime.datetime.now()
-    #     #     for work in self.works:
-    #     #         work.eisenhower_priority()
-    #     #         if work.time_ntf.day == now.day:
-    #     #             if now.hour == work.time_ntf.hour and now.minute == work.time_ntf.minute:
-    #     #                 return work.notify
+    #     now = dt.now()
+    #     for work in self.works:
+    #         work.eisenhower_priority()
+    #         work.work_refresh()
+    #         if work.time_ntf.day == now.day:
+    #             if work.priority == 1 and (dt.now().time() >= work.time_ntf.time()):
+    #                 while True:
+    #                     check = work.notify()
+    #                     if check:
+    #                         work.time_ntf + tdelta(seconds=60)
+    #                         break
+    #                     else:
+    #                         break
+
+                    # if (work.priority == 2) and ((dt.now().hour == work.time_ntf.hour)
+                    #                              and (dt.now().time().minute == work.time_ntf.time().minute)):
+                    #     work.notify()
+                    #
+                    # if work.priority == 3 and dt.now().time().hour == 18:
+                    #     check = work.notify()
+                    #     if check:
+                    #         work.time_ntf + tdelta(days=1)
+                    #
+                    # if work.priority == 4 and dt.now().weekday() == 6:
+                    #     check = work.notify()
+                    #     if check:
+                    #         work.time_ntf + tdelta(weeks=7)
 
     def categorize_works(self):
         """
@@ -62,8 +81,9 @@ class User:
 
         for w in self.works:
             if w.work_name == work_name:
+                w.status = 'done'
                 self.works.remove(w)
-            return self.works
+        return self.works
 
     def accept_a_work(self, received_work):
         """
@@ -109,6 +129,11 @@ class User:
                  f'{Fore.LIGHTGREEN_EX}{_.link}{Fore.RESET}',
                  f'{Fore.LIGHTGREEN_EX}{_.description}{Fore.RESET}']
         return tabulate(my_works_table, my_works_table.keys(), tablefmt="presto")
+
+    def log_out(self):
+        for w in self.works:
+            w.status = "done"
+        return "you are logging out.."
 
     def __str__(self):
         return f'name: {self.name}\n last name: {self.last_name}\nusername: {self.username}\n' \
