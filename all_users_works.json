@@ -1,17 +1,5 @@
 {
     "rza": {
-        "study english": {
-            "work_name": "study english",
-            "work_datetime": "2021-05-14 05:36:00",
-            "category": "education",
-            "status": "in progress",
-            "importance": true,
-            "urgency": false,
-            "location": "",
-            "link": "",
-            "description": "",
-            "notification": "time to learn "
-        },
         "check portal": {
             "work_name": "check portal",
             "work_datetime": "2021-05-15 03:47:00",
@@ -35,6 +23,18 @@
             "link": "",
             "description": "buy books",
             "notification": "do not forget to by your books"
+        },
+        "visit dentist": {
+            "work_name": "visit dentist",
+            "work_datetime": "2021-05-21 07:14:00",
+            "category": "appointments",
+            "status": "in progress",
+            "importance": false,
+            "urgency": true,
+            "location": "clinic",
+            "link": "",
+            "description": "",
+            "notification": "time to visit doctor"
         }
     },
     "zhr": {
@@ -73,25 +73,37 @@
             "link": "",
             "description": "",
             "notification": "time to visit doctor"
+        },
+        "finish homework": {
+            "work_name": "finish homework",
+            "work_datetime": "2021-05-22 03:30:00",
+            "category": "educational",
+            "importance": true,
+            "urgency": "home",
+            "location": "",
+            "link": "",
+            "description": "in progress",
+            "status": true,
+            "notification": "finish homeworks today"
         }
     },
     "rya": {
         "study english": {
             "work_name": "study english",
-            "work_datetime": "2021-05-17 15:50:00",
+            "work_datetime": "2021-05-22 16:50:00",
             "category": "education",
-            "status": "in progress",
-            "importance": true,
-            "urgency": true,
+            "importance": false,
+            "urgency": "",
             "location": "",
             "link": "",
-            "description": "",
-            "notification": null
+            "description": "in progress",
+            "status": true,
+            "notification": "time to study english"
         },
         "car wash": {
             "work_name": "car wash",
             "work_datetime": "2021-05-17 21:06:00",
-            "category": "rutins",
+            "category": "Routines",
             "status": "in progress",
             "importance": false,
             "urgency": true,
@@ -99,6 +111,18 @@
             "link": "",
             "description": "modern car wash",
             "notification": "time to wash car"
+        },
+        "send deadline massage": {
+            "work_name": "send deadline massage",
+            "work_datetime": "2021-05-23 02:10:00",
+            "category": "students task",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": "",
+            "notification": "deadline massage must be sent"
         }
     },
     "ftm": {
@@ -173,6 +197,32 @@
             "link": "raja.ir",
             "description": "to Tehran",
             "notification": "check for tickets"
+        }
+    },
+    "sra": {
+        "study english": {
+            "work_name": "study english",
+            "work_datetime": "2021-05-21 12:30:00",
+            "category": "education",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "home",
+            "link": "",
+            "description": "listening and writing",
+            "notification": "time to improve your english skill"
+        },
+        "send deadline massage": {
+            "work_name": "send deadline massage",
+            "work_datetime": "2021-05-23 02:10:00",
+            "category": "students task",
+            "status": "in progress",
+            "importance": true,
+            "urgency": true,
+            "location": "",
+            "link": "",
+            "description": "",
+            "notification": "deadline massage must be sent"
         }
     }
 }

@@ -41,6 +41,7 @@ def create_work(usr):
         except AssertionError:
             print(f'{Fore.LIGHTRED_EX} work_name already exist in work list{Fore.RESET} ')
             continue
+
     while True:
         try:
             work_datetime = input('Enter date and time as :(year-month-day hour:min:sec): ')
@@ -58,16 +59,19 @@ def create_work(usr):
             importance = True if importance == '1' else False
             urgency = True if urgency == '1' else False
             break
+
         except ValueError:
             print('invalid input... try again')
             reminder_logger.error(f'invalid input of importance or urgency of create work for {usr.username}')
             continue
+
     try:
         category = input('choose a category for your work: ')
         assert category in usr.categories.keys()
     except AssertionError:
         reminder_logger.info('new category adds to works list')
         pass
+
     location = input('location of work (optional): ')
     link = input('add a link related to your work (optional): ')
     description = input('enter a description for your work (optional): ')
@@ -85,6 +89,7 @@ def create_work(usr):
         'description': description,
         'notification': notification
     }
+
     new_work = Work.create_work(work_dict)
     usr.works.append(new_work)
     new_thread = threading.Thread(name=new_work.work_name, target=new_work.notify, daemon=True)
@@ -149,7 +154,6 @@ def notify_on(usr):
             _.work_refresh()
             if _.work_datetime.day == now.day and _.status != "done":
                 th = threading.Thread(name=_.work_name, target=_.notify, daemon=True)
-                # th = multiprocessing.Process(name=_.work_name, target=_.notify)
                 th.start()
                 threads.append(th)
 
@@ -242,8 +246,11 @@ def share(sender_user, target_work):
 
     receiver_usr = user.User(*(users_from_file[receiver].values()))
     receiver_usr.events[sender_user.username] = target_work
+    to_event_file = target_work.__dict__
+    to_event_file.pop("priority")
+    to_event_file.pop("time_ntf")
 
-    file_manager.write_to_file('events.json', target_work.__dict__, receiver, sender_user.username)
+    file_manager.write_to_file('events.json', to_event_file, receiver, sender_user.username)
 
     return f'{Fore.WHITE}"{target_work.work_name}" has been sent to "{receiver_usr.username}"{Fore.RESET}'
 
@@ -264,57 +271,63 @@ def check_events(logged_in_user):
             assert all_events
         except KeyError:
             print(f'{Fore.GREEN}You have no events...{Fore.RESET}')
-            reminder_logger.info(f'"{logged_in_user.username}" has no message so far')
+            reminder_logger.info(f'"{logged_in_user.username}" has no event so far')
+            back = input(f'{Fore.GREEN}enter "b" to back{Fore.RESET}')
+            if back:
+                break
 
         except AssertionError:
             print(f'{Fore.BLUE}no new event...{Fore.RESET}')
-        if KeyError or AssertionError:
-            back = input(f'{Fore.GREEN}enter "b" to back{Fore.RESET}')
             reminder_logger.info(f'"{logged_in_user}" has no new event this time')
+            back = input(f'{Fore.GREEN}enter "b" to back{Fore.RESET}')
             if back:
                 break
-        else:
-            sender_work = {i + 1: event for i, event in enumerate(all_events.items())}
-            work_select = {}
-            for i, evnt in sender_work.items():
-                work_select[i] = (evnt[0], (Work(*(evnt[1].values()))))
 
-            options = len(work_select)
+        sender_work = {i + 1: event for i, event in enumerate(all_events.items())}
+        work_select = {}
+        for i, evnt in sender_work.items():
+            work_select[i] = (evnt[0], (Work(*(evnt[1].values()))))
 
-            while work_select:
-                for i, evnt in work_select.items():
-                    print(f'{i}. {evnt[0]}: "{evnt[1].work_name}"')
-                print('0. back to main menu')
+        options = len(work_select)
 
-                select = int(input('choose a work or enter 0 to back:'))
+        while work_select:
+            for i, evnt in work_select.items():
+                print(f'{i}. {evnt[0]}: "{evnt[1].work_name}"')
+            print('0. back to main menu')
 
-                if 0 < select <= options:
-                    temp = work_select.pop(select)
-                    slct_wrk = temp[1]
-                    all_events.pop(temp[0])
-                    print(file_manager.write_to_file('events.json', all_events, logged_in_user.username))
+            select = int(input('choose a work or enter 0 to back:'))
 
-                    print(f'{Fore.GREEN}information of "{slct_wrk.work_name}": {Fore.RESET}')
-                    print(f'{slct_wrk}')
+            if 0 < select <= options:
+                temp = work_select.pop(select)
+                slct_wrk = temp[1]
+                all_events.pop(temp[0])
+                print(file_manager.write_to_file('events.json', all_events, logged_in_user.username))
 
-                    act = int(input('1. accept 2. reject:'))
-                    if act == 1:
-                        print(logged_in_user.accept_a_work(slct_wrk))
-                        print(file_manager.write_to_file('all_users_works.json', slct_wrk.__dict__,
-                                                         logged_in_user.username, slct_wrk.work_name))
+                print(f'{Fore.GREEN}information of "{slct_wrk.work_name}": {Fore.RESET}')
+                print(f'{slct_wrk}')
 
-                    elif act == 2:
-                        print(f'{Fore.LIGHTYELLOW_EX}{slct_wrk.work_name} has been rejected{Fore.RESET}')
-                        continue
-                elif select == 0:
-                    print(f'{Fore.CYAN} event check has been aborted {Fore.RESET}')
-                    break
+                act = int(input(f'{Fore.GREEN}1. accept {Fore.RED}2. reject: {Fore.RESET}'))
+                if act == 1:
+                    print(logged_in_user.accept_a_work(slct_wrk))
+                    wrk_to_file = slct_wrk.__dict__.copy()
+                    wrk_to_file.pop("priority")
+                    wrk_to_file.pop("time_ntf")
+                    print(slct_wrk.__dict__)
+                    print(file_manager.write_to_file('all_users_works.json', wrk_to_file,
+                                                     logged_in_user.username, slct_wrk.work_name))
 
-            if not work_select:
-                all_events.clear()
-                sender_work.clear()
-                print(file_manager.write_to_file('events.json', {}, logged_in_user.username))
+                elif act == 2:
+                    print(f'\n{Fore.LIGHTYELLOW_EX}{slct_wrk.work_name} has been rejected{Fore.RESET}')
+                    continue
+            elif select == 0:
+                print(f'\n{Fore.CYAN} event check has been aborted {Fore.RESET}')
                 break
+
+        if not work_select:
+            all_events.clear()
+            sender_work.clear()
+            print(file_manager.write_to_file('events.json', {}, logged_in_user.username))
+            break
 
 
 def multi_threads(function_1, function_2, args1=None, args2=None):
@@ -458,8 +471,9 @@ def edit_work_menu(usr, wrk):
     items = []
     attributes_dict = {}
     attribute_lst = list(wrk.__dict__.keys())
-    attribute_lst.pop(attribute_lst.index('priority'))
-    attribute_lst.pop(attribute_lst.index('time_ntf'))
+    if ('priority' in attribute_lst) or ('time_ntf' in attribute_lst):
+        attribute_lst.pop(attribute_lst.index('priority'))
+        attribute_lst.pop(attribute_lst.index('time_ntf'))
 
     count = 0
     R = Fore.RESET
@@ -484,10 +498,10 @@ def edit_work_menu(usr, wrk):
             assert len(items) <= 10
             break
         except AssertionError:
-            print(f"{Fore.RED} invalid input... just 1 - 10 are allowed."
+            print(f"\n{Fore.RED} invalid input... just 1 - 10 are allowed."
                   f" you don't have more than 10 option{Fore.RESET}")
         except ValueError:
-            print(f'{Fore.LIGHTRED_EX} invalid input. input must be integer')
+            print(f'\n{Fore.LIGHTRED_EX} invalid input. input must be integer')
             continue
 
     edit_items = [attributes_dict[num] for num in items]
@@ -516,13 +530,13 @@ def edit_work_menu(usr, wrk):
                     new_val = input(f'{C}new values of {itm}, current {itm} is {old_values[itm]}{R}')
                     if not re.match("%Y-%m-%d %H:%M:%S", new_val):
                         ValueError(new_val)
-
+                        edit_work_file[itm] = new_val
                         new_values[itm] = new_val
                     new_values['work_datetime'] = datetime.datetime.strptime(new_values['work_datetime'],
                                                                              "%Y-%m-%d %H:%M:%S")
                     break
                 except ValueError:
-                    print(f'invalid datetime format. try this: year-month-day hour:minutes:second')
+                    print(Fore.LIGHTRED_EX, f'invalid datetime format. try this: year-month-day hour:minutes:second', R)
                     continue
         else:
             new_val = input(f'{C}new values of {itm}, current {itm} is {old_values[itm]}{R}')
@@ -538,10 +552,18 @@ def edit_work_menu(usr, wrk):
 
     file_manager.write_to_file('all_users_works.json', work_dict, usr.username)
     wrk.edit_work(new_values)
+    print(wrk.__dict__)
 
-    for th in threads:
-        if th.name == wrk.work_name:
-            th.join(1)
+    th_names = [th.name for th in threads]
+    if wrk.work_name in th_names:
+        for th in threads:
+            if wrk.work_name == th.name:
+                th.join(1)
+    else:
+        th = threading.Thread(name=wrk.work_name, target=wrk.notify, daemon=True)
+        threads.append(th)
+        th.start()
+        th.join(1)
 
     reminder_logger.info(f'{usr.username} edited {wrk.work_name}:\n{out_str}')
     return out_str

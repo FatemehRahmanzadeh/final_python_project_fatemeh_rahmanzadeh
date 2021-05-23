@@ -1,4 +1,3 @@
-from datetime import datetime as dt, timedelta as tdelta
 import file_manager
 from work import Work
 from hashlib import md5
@@ -25,38 +24,6 @@ class User:
         self.works = []
         self.categories = {}
         self.events = {}
-
-    # def notify(self):
-    #     """
-    #     this method determines which work's alarm time is now
-    #     """
-    #     now = dt.now()
-    #     for work in self.works:
-    #         work.eisenhower_priority()
-    #         work.work_refresh()
-    #         if work.time_ntf.day == now.day:
-    #             if work.priority == 1 and (dt.now().time() >= work.time_ntf.time()):
-    #                 while True:
-    #                     check = work.notify()
-    #                     if check:
-    #                         work.time_ntf + tdelta(seconds=60)
-    #                         break
-    #                     else:
-    #                         break
-
-                    # if (work.priority == 2) and ((dt.now().hour == work.time_ntf.hour)
-                    #                              and (dt.now().time().minute == work.time_ntf.time().minute)):
-                    #     work.notify()
-                    #
-                    # if work.priority == 3 and dt.now().time().hour == 18:
-                    #     check = work.notify()
-                    #     if check:
-                    #         work.time_ntf + tdelta(days=1)
-                    #
-                    # if work.priority == 4 and dt.now().weekday() == 6:
-                    #     check = work.notify()
-                    #     if check:
-                    #         work.time_ntf + tdelta(weeks=7)
 
     def categorize_works(self):
         """
@@ -93,6 +60,7 @@ class User:
         """
         work_names = [work.work_name for work in self.works]
         if received_work.work_name not in work_names:
+            received_work.work_refresh()
             self.works.append(received_work)
             return f'{Fore.LIGHTGREEN_EX}{received_work.work_name} has been accepted{Fore.RESET}'
         else:
@@ -196,6 +164,3 @@ class User:
         else:
             print(f'No user named {username}...')
             return False
-
-# if __name__ == "__main__":
-#     pass

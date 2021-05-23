@@ -21,12 +21,12 @@ class Work:
         self.work_name = work_name
         self.work_datetime = dt.strptime(work_datetime, "%Y-%m-%d %H:%M:%S")
         self.category = category
+        self.status = status
         self.importance = importance
         self.urgency = urgency
         self.location = location
         self.link = link
         self.description = description
-        self.status = status
         self.notification = notification
         self.priority = 0
         self.time_ntf = self.work_datetime
@@ -76,7 +76,7 @@ class Work:
                     hours = (18 - self.work_datetime.hour)
                 else:
                     hours = 0
-                self.time_ntf = self.work_datetime + tdelta(seconds=hours*3600)
+                self.time_ntf = self.work_datetime + tdelta(seconds=hours * 3600)
                 return self.time_ntf
 
             elif not self.importance and not self.urgency:
@@ -99,11 +99,6 @@ class Work:
             """
             ntftion.notify('reminder', f"{self.notification}:\n{self.work_name}\n{self.work_datetime.hour}: "
                                        f"{self.work_datetime.minute} ", app_icon='reminder.ico', timeout=3)
-        # if self.status != "done":
-        #     remind()
-        #     return 1
-        # else:
-        #     return 0
 
         self.eisenhower_priority()
         if self.priority:
@@ -118,10 +113,10 @@ class Work:
                     break
                 elif self.priority == 3 and dt.now().time().hour == 18:
                     remind()
-                    time.sleep(24*3600)
+                    time.sleep(24 * 3600)
                 elif self.priority == 4 and dt.now().weekday() == 6:
                     remind()
-                    time.sleep(7*24*3600)
+                    time.sleep(7 * 24 * 3600)
         else:
             pass
 
@@ -130,11 +125,11 @@ class Work:
         user can edit attributes of work using this method
         :return: a massage if editing is successful or not
         """
+        self.eisenhower_priority()
+        self.work_refresh()
 
         for attr, new_val in new_values.items():
             self.__dict__[attr] = new_val
-        self.work_refresh()
-        self.eisenhower_priority()
         return self.__dict__
 
     def change_status(self):
@@ -165,8 +160,9 @@ class Work:
 
     def __str__(self):
         return 'work_name: {}\nwork_datetime: {}\nimportance: {}\nurgency: {}\nstatus: {}\nlocation {}' \
-               '  link: {}  description {}'.format(self.work_name, self.work_datetime, self.importance, self.urgency,
-                                                   self.status, self.location, self.link, self.description)
+               '  link: {}  description {}\nnotification:{}\nnotification time' \
+            .format(self.work_name, self.work_datetime, self.importance, self.urgency, self.status, self.location,
+                    self.link, self.description, self.notification, self.time_ntf)
 
     @classmethod
     def create_work(cls, work_dict):
