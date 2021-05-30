@@ -6,7 +6,8 @@ from colorama import Fore
 
 
 class User:
-    def __init__(self, user_email, name, last_name, username, password):
+    def __init__(self, user_email, name, last_name, username,
+                 password, status, lock_time):
         """
 
         :param user_email: an unique email address for each user
@@ -14,6 +15,8 @@ class User:
         :param last_name: last name of user
         :param username: a freewill name chosen by user
         :param password: a safe password chosen by user
+        :param status: if account is locked this attribute is false else, its true
+        :param lock_time: last time user's account locked
         """
         self.user_email = user_email
         self.name = name
@@ -24,6 +27,8 @@ class User:
         self.works = []
         self.categories = {}
         self.events = {}
+        self.status = status
+        self.locked_time = lock_time
 
     def categorize_works(self):
         """
@@ -117,7 +122,9 @@ class User:
                          'name': user_data[1],
                          'last_name': user_data[2],
                          'username': user_data[3],
-                         'password': user_data[4]}
+                         'password': user_data[4],
+                         'status': True,
+                         'lock_time': '0000-00-00 00:00:00'}
         password = str(new_user_data['password']).encode()
         hashed_password = md5(password).hexdigest()
         new_user_data['password'] = hashed_password
@@ -155,11 +162,8 @@ class User:
                 if user_has_work:
                     for _ in my_works.values():
                         current_user.works.append(Work(*(_.values())))
-
-                print(f'welcome {current_user.name}. your log in was successful.')
                 return current_user
             else:
-                print('password is wrong...')
                 return False
         else:
             print(f'No user named {username}...')

@@ -462,7 +462,7 @@ def work_menu(logged_in_user, wrk):
 
 def edit_work_menu(usr, wrk):
     """
-    this menu let users edit attributes of their works
+    this menu lets users edit attributes of their works
     :param usr: user logged in to reminder
     :param wrk: selected work object to edit
     :return: an edited work object
@@ -552,7 +552,6 @@ def edit_work_menu(usr, wrk):
 
     file_manager.write_to_file('all_users_works.json', work_dict, usr.username)
     wrk.edit_work(new_values)
-    print(wrk.__dict__)
 
     th_names = [th.name for th in threads]
     if wrk.work_name in th_names:

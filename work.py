@@ -105,7 +105,7 @@ class Work:
             while dt.now().day <= self.time_ntf.day and self.status != "done":
                 if self.priority == 1 and dt.now().time() >= self.time_ntf.time():
                     remind()
-                    time.sleep(20)
+                    time.sleep(5*60)
 
                 elif (self.priority == 2) and ((dt.now().hour == self.time_ntf.hour)
                                                and (dt.now().time().minute == self.time_ntf.time().minute)):

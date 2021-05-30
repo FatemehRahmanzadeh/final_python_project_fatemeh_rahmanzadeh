@@ -64,27 +64,15 @@
         },
         "visit doctor": {
             "work_name": "visit doctor",
-            "work_datetime": "2021-09-21 18:00:00",
+            "work_datetime": "2021-09-23 10:00:00",
             "category": "appointments",
             "status": "in progress",
-            "importance": true,
+            "importance": false,
             "urgency": true,
             "location": "",
             "link": "",
             "description": "",
             "notification": "time to visit doctor"
-        },
-        "finish homework": {
-            "work_name": "finish homework",
-            "work_datetime": "2021-05-22 03:30:00",
-            "category": "educational",
-            "importance": true,
-            "urgency": "home",
-            "location": "",
-            "link": "",
-            "description": "in progress",
-            "status": true,
-            "notification": "finish homeworks today"
         }
     },
     "rya": {
@@ -130,7 +118,7 @@
             "work_name": "visit dentist",
             "work_datetime": "2021-05-21 07:14:00",
             "category": "appointments",
-            "status": "in progress",
+            "status": "done",
             "importance": false,
             "urgency": true,
             "location": "clinic",
@@ -140,7 +128,7 @@
         },
         "study english": {
             "work_name": "study english",
-            "work_datetime": "2021-05-21 12:30:00",
+            "work_datetime": "2021-05-18 12:30:00",
             "category": "education",
             "status": "in progress",
             "importance": true,
@@ -152,7 +140,7 @@
         },
         "finish homework": {
             "work_name": "finish homework",
-            "work_datetime": "2021-05-22 03:30:00",
+            "work_datetime": "2021-05-23 03:30:00",
             "category": "educational",
             "status": "in progress",
             "importance": true,
@@ -168,7 +156,7 @@
             "category": "chores",
             "status": "in progress",
             "importance": true,
-            "urgency": true,
+            "urgency": false,
             "location": "supermarket",
             "link": "shahrvand.ir",
             "description": "daily works",
@@ -176,19 +164,19 @@
         },
         "send deadline massage": {
             "work_name": "send deadline massage",
-            "work_datetime": "2021-05-22 02:10:00",
+            "work_datetime": "2021-05-23 11:37:00",
             "category": "students task",
-            "status": "done",
-            "importance": true,
+            "status": "in progress",
+            "importance": false,
             "urgency": true,
             "location": "",
             "link": "",
             "description": "",
-            "notification": ""
+            "notification": "send message to students"
         },
         "ticket check": {
             "work_name": "ticket check",
-            "work_datetime": "2021-05-22 03:00:00",
+            "work_datetime": "2021-05-14 03:00:00",
             "category": "trip tasks",
             "status": "in progress",
             "importance": true,
@@ -223,6 +211,18 @@
             "link": "",
             "description": "",
             "notification": "deadline massage must be sent"
+        },
+        "visit dentist": {
+            "work_name": "visit dentist",
+            "work_datetime": "2021-05-21 07:14:00",
+            "category": "appointments",
+            "status": "in progress",
+            "importance": false,
+            "urgency": true,
+            "location": "clinic",
+            "link": "",
+            "description": "",
+            "notification": "time to visit doctor"
         }
     }
 }

@@ -73,6 +73,3 @@ def show_month_works(usr, target_date):
         return 0
     return tabulate(month_works, month_works.keys(), tablefmt="presto")
 
-# t2 = datetime.strptime('2021-05-1 08:12:00', "%Y-%m-%d %H:%M:%S")
-# print(t2.month)
-# print(t2.isocalendar()[0])
