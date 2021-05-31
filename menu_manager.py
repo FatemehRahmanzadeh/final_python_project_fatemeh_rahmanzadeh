@@ -23,7 +23,7 @@ reminder_logger.addHandler(file_handler)
 def create_work(usr):
     """
     this method gets information from user and makes instance of
-    Work by calling creat work of class Work
+    Work by calling creat work of Work class.
     """
     work_names = [w.work_name for w in usr.works]
     time_format = "%Y-%m-%d %H:%M:%S"
@@ -62,7 +62,7 @@ def create_work(usr):
 
         except ValueError:
             print('invalid input... try again')
-            reminder_logger.error(f'invalid input of importance or urgency of create work for {usr.username}')
+            reminder_logger.error(f'invalid input of importance or urgency')
             continue
 
     try:
@@ -98,12 +98,13 @@ def create_work(usr):
 
     print(file_manager.write_to_file('all_users_works.json', work_dict, usr.username, work_dict['work_name']))
     reminder_logger.info(f"'{usr.username}' created '{new_work.work_name}' work successfully", exc_info=True)
-    return f'"{Fore.LIGHTGREEN_EX}{new_work.work_name}" were added to your to do list{Fore.RESET}'
+    return f'"{Fore.LIGHTGREEN_EX}new work was added to work list{Fore.RESET}'
 
 
 def postpone_work(usr, wrk):
     """
-    this function postpone a work by changing datetime attribute of work
+    this function postpone a work by changing datetime attribute of work.
+    there is four options for user. one hour, one day, one week or one month.
     :param wrk: target work of user
     :param usr: logged in user to reminder
     :return: a massage about changing datetime of work
@@ -131,14 +132,14 @@ def postpone_work(usr, wrk):
                 print('file not found')
             update_work[wrk.work_name]['work_datetime'] = new_dt_file
             print(file_manager.write_to_file('all_users_works.json', update_work, usr.username))
-            reminder_logger.info(f'"{usr.username}" postponed "{wrk.work_name}"', exc_info=True)
+            reminder_logger.info(f'"a work has been postponed', exc_info=True)
 
             return f'{Fore.GREEN}{wrk.work_name} has been postponed to {new_datetime}{Fore.RESET}'
         except ValueError:
             print(f'{Fore.LIGHTRED_EX} invalid input try again..{Fore.RESET}')
         except IOError:
             print(f'{Fore.LIGHTRED_EX}file read and write error{Fore.RESET}')
-            logging.error('error in reading or writing "all_users_works.json"')
+            reminder_logger.error('error in reading or writing "all_users_works.json"')
 
 
 def notify_on(usr):
@@ -205,7 +206,7 @@ def change_status(usr, wrk):
                 status_ch = all_usr_wrk[wrk.work_name]
                 status_ch['status'] = new_status
                 print(file_manager.write_to_file('all_users_works.json', status_ch, usr.username, wrk.work_name))
-                reminder_logger.info(f'"{usr.username}" finished "{wrk.work_name}"', exc_info=True)
+                reminder_logger.info(f'user finished a work', exc_info=True)
                 break
 
             elif change_sts == 2:
@@ -222,7 +223,7 @@ def change_status(usr, wrk):
 
 def share(sender_user, target_work):
     """
-    this function moves work from sender_user to receiver_user if receiver accepts it
+    this function saves a copy of chosen work by sender user to a temporary file as events file
     :param sender_user: logged in user
     :param target_work: selected work to be sent
     :return:
@@ -271,14 +272,14 @@ def check_events(logged_in_user):
             assert all_events
         except KeyError:
             print(f'{Fore.GREEN}You have no events...{Fore.RESET}')
-            reminder_logger.info(f'"{logged_in_user.username}" has no event so far')
+            reminder_logger.info(f'user checked events and has no event so far')
             back = input(f'{Fore.GREEN}enter "b" to back{Fore.RESET}')
             if back:
                 break
 
         except AssertionError:
             print(f'{Fore.BLUE}no new event...{Fore.RESET}')
-            reminder_logger.info(f'"{logged_in_user}" has no new event this time')
+            reminder_logger.info(f'"user checked events and has no new event this time')
             back = input(f'{Fore.GREEN}enter "b" to back{Fore.RESET}')
             if back:
                 break
@@ -564,7 +565,7 @@ def edit_work_menu(usr, wrk):
         th.start()
         th.join(1)
 
-    reminder_logger.info(f'{usr.username} edited {wrk.work_name}:\n{out_str}')
+    reminder_logger.info('user edited a work')
     return out_str
 
 
@@ -630,7 +631,7 @@ def date_view(usr):
             assert 1 <= timespan <= 4
         except AssertionError:
             print(f'{Fore.LIGHTRED_EX} invalid input enter number between 1 to 4{Fore.RESET}')
-            reminder_logger.error(f'input error for {usr.username}')
+            reminder_logger.error(f'input error')
 
         choice = {1: lambda u, d: c.show_month_works(u, d),
                   2: lambda u, d: c.show_week_works(u, d),
@@ -642,4 +643,4 @@ def date_view(usr):
                 print("\n", Fore.BLUE, choice[timespan](usr, date), Fore.RESET, "\n")
             except IOError:
                 print(Fore.LIGHTRED_EX, '\nsomething went wrong in calandar module', Fore.RESET)
-                reminder_logger.error(f'error in {usr.username} app, in calendar module..')
+                reminder_logger.error(f'error reading from file')
