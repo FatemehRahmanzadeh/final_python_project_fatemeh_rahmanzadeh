@@ -1,4 +1,4 @@
-# final_python_project_fatemeh_rahmanzadeh
+# python Reminder
 a console base reminder application
 ### options:
 * schedule tasks
